@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ab03f03ecd616c4ba355fa0687ef0ad, type: 3}
+  m_Name: pistol1
+  m_EditorClassIdentifier: 
+  animatorId: 4
+  attackTrigger: Attack
+  releaseTrigger: Release
+  localOffset: {x: 0.02, y: -0.193, z: 0.66}
+  isGun: 1
+  initialAmmo: 12
+  fireCooldown: 0.25
+  damage: 37
+  reactTrigger: react
+  fireSfx: {fileID: 8300000, guid: acad326431d80054b8e48301cf2fba86, type: 3}
+  emptySfx: {fileID: 8300000, guid: 28b41d9b00def3a4488828d8a691eaec, type: 3}
+  loopSfx: {fileID: 0}
+  displayName: Pistol
+  icon: {fileID: 21300000, guid: 2547d369c6c060f4ca72df513145b499, type: 3}
