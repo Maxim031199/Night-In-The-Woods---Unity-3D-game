@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class SaveScript : MonoBehaviour
 {
-    // ---- existing fields (kept) ----
+
 
     [SerializeField] public static int weaponID = 0;
     [SerializeField] public static bool[] weaponPickedUp = new bool[9];
@@ -33,15 +33,15 @@ public class SaveScript : MonoBehaviour
     Vector2 moveValue;
     bool isSprinting;
 
-    // tuning (match the course values)
+    // tuning 
     [Header("Stamina Tuning")]
-    [SerializeField] float drainPerSecond = 10f;     // when sprinting & moving
+    [SerializeField] float drainPerSecond = 10f;     // when sprinting and moving
     [SerializeField] float regenPerSecond = 3.35f;   // when not draining
     [SerializeField] float maxStamina = 100f;
 
     void Awake()
     {
-        inputActions = new();   // auto-assign, no inspector refs
+        inputActions = new();   
     }
     void OnEnable()
     {
@@ -54,7 +54,7 @@ public class SaveScript : MonoBehaviour
         inputActions.Player.Sprint.canceled += OnSprintCanceled;
         inputActions.Player.Attack.performed += OnAttackPerformed;
 
-        // if you expose Jump/other actions here, mirror the same pattern
+        // if we expose actions here
     }
     void OnDisable()
     {
@@ -107,17 +107,13 @@ public class SaveScript : MonoBehaviour
     }
 
 
-
-
-
-
     void Update()
     {
-        // Pause / inventory: optional light regen while UI open
+        // Pause / inventory
         if (Time.timeScale == 0f || inventoryOpen)
         {
             stamina = Mathf.Min(maxStamina, stamina + regenPerSecond * Time.unscaledDeltaTime);
-            FPController.FPSstamina = stamina; // keep mirror
+            FPController.FPSstamina = stamina; 
             return;
         }
 
@@ -131,12 +127,12 @@ public class SaveScript : MonoBehaviour
         stamina = Mathf.Clamp(stamina, 0f, maxStamina);
         FPController.FPSstamina = stamina; // mirror for any legacy readers
         if (infection < 50)
-            infection += 0.1f * Time.deltaTime;
-        if (infection > 49 && infection < 100)
             infection += 0.4f * Time.deltaTime;
+        if (infection > 49 && infection < 100)
+            infection += 0.8f * Time.deltaTime;
 
 
-        // --- PISTOL ---
+        // pistol
         if (weaponID == 4 && currentAmmo[4] > 0 && attackQueued)
         {
             if (Physics.SphereCast(transform.position, 0.01f, transform.forward,
@@ -148,13 +144,11 @@ public class SaveScript : MonoBehaviour
                     zg.SendGunDamage(gunHit.point, pistolDamage);
                     
                 }
-            }
-            // important: don’t keep the click “queued”
+            }     
             attackQueued = false;
         }
 
-        // --- SHOTGUN ---
-        // --- SHOTGUN ---
+        // shotgun
         if (weaponID == 5 && currentAmmo[5] > 0 && attackQueued)
         {
             
@@ -162,12 +156,11 @@ public class SaveScript : MonoBehaviour
             shotgunHits = Physics.SphereCastAll(transform.position, 0.3f, transform.forward,
                                                 50f, ~0, QueryTriggerInteraction.Ignore);
 
-            // NEW: ensure we damage each zombie at most once per shot
             var damaged = new System.Collections.Generic.HashSet<ZombieDamage>();
 
             for (int i = 0; i < shotgunHits.Length; i++)
             {
-                // stop depending on the child name; hit any child under a zombie
+                // stop depending on the child name
                 var zg = shotgunHits[i].transform.GetComponentInParent<ZombieGunDamage>();
                 if (zg == null) continue;
 
@@ -177,7 +170,7 @@ public class SaveScript : MonoBehaviour
                 zd.gunDamage(shotgunHits[i].point, shotgunDamage);
             }
 
-            attackQueued = false; // consume the click no matter what
+            attackQueued = false; 
         }
 
     }

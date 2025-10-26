@@ -26,7 +26,6 @@ public class NightVisionScript : MonoBehaviour
     [SerializeField] private bool setBarToDefaultOnEnable = false;
     [Range(0f, 1f)] public float defaultFillOnEnable = DefaultFillOnEnable;
 
-    // constants
     private const float MinFOV = 10f;
     private const float MaxFOV = 60f;
     private const float ZoomStep = 5f;
@@ -37,7 +36,6 @@ public class NightVisionScript : MonoBehaviour
     private const float ZoomBarDivisor = 100f;
     float startFov;
 
-    // in case no asset was assigned, we’ll create one at runtime
     private InputAction _runtimeZoom;
 
     void Awake()
@@ -57,7 +55,6 @@ public class NightVisionScript : MonoBehaviour
         var action = zoomAction != null ? zoomAction.action : null;
         if (action == null)
         {
-            // fallback: make a Zoom action bound to <Mouse>/scroll
             _runtimeZoom = new InputAction("Zoom", InputActionType.Value, "<Mouse>/scroll");
             action = _runtimeZoom;
         }
@@ -94,15 +91,12 @@ public class NightVisionScript : MonoBehaviour
 
     void Update()
     {
-        // no more Input.GetAxis or Mouse.current polling here
         if (batteryChunks) batteryChunks.fillAmount = Mathf.Clamp01(batteryPower);
     }
 
     private void OnZoomPerformed(InputAction.CallbackContext ctx)
     {
         if (!cam) return;
-
-        // Scroll is Vector2; we care about Y
         float y = ctx.ReadValue<Vector2>().y;
         if (Mathf.Abs(y) < ScrollThreshold) return;
 

@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class ZombieAttack : MonoBehaviour
 {
-    [SerializeField] private ZombieData data;  // MUST be assigned
-    [SerializeField] private int damageAmt = 3; // will be overridden by data
+    [SerializeField] private ZombieData data;  
+    [SerializeField] private int damageAmt = 3; 
     bool canDamage = true;
     Collider col;
     Animator bloodEffect;

@@ -4,9 +4,9 @@ using UnityEngine.AI;
 [DisallowMultipleComponent]
 public class ZombieDamage : MonoBehaviour
 {
-    [SerializeField] private ZombieData data;          // MUST be assigned
-    [SerializeField] private GameObject bloodSplat;    // can be auto-filled from data
-    [SerializeField] private Collider[] hitColliders;  // assign Body (and others that receive hits)
+    [SerializeField] private ZombieData data;         
+    [SerializeField] private GameObject bloodSplat;    
+    [SerializeField] private Collider[] hitColliders;  
 
     Animator zombieAnim;
     AudioSource damagePlayer;
@@ -68,14 +68,14 @@ public class ZombieDamage : MonoBehaviour
         // Damage
         health -= Mathf.Max(0, hit.data.damage);
 
-        // Blood/VFX
+        // Blood and VFX
         var pos = other.ClosestPoint(transform.position);
         if (bloodSplat) Instantiate(bloodSplat, pos, other.transform.rotation);
 
-        // SFX — use the weapon's impact clip
+        // SFX for our use the weapons impact clip
         if (hit.data.hitSfx && damagePlayer) damagePlayer.PlayOneShot(hit.data.hitSfx);
 
-        // React animation per-weapon (e.g., "react" vs "axeReact")
+        // React animation per weapon 
         var trig = hit.data.reactTrigger;
         if (!string.IsNullOrEmpty(trig)) zombieAnim.SetTrigger(trig);
 
@@ -98,13 +98,13 @@ public class ZombieDamage : MonoBehaviour
 
         if (data.deathSfx && damagePlayer) damagePlayer.PlayOneShot(data.deathSfx);
 
-        // Let the death anim play, then destroy
+        // Let the death anim play and after that then destroy
         Invoke(nameof(OnDeathAnimComplete), deathDestroyDelay);
     }
 
     public void OnDeathAnimComplete()
     {
-        // destroy the whole zombie root so nothing hangs around
+        // destroy the whole zombie root 
         Destroy(transform.root.gameObject);
     }
 }

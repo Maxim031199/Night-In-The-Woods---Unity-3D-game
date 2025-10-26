@@ -7,8 +7,6 @@ public class LighterScript : MonoBehaviour
 
     void Awake()
     {
-        // If you put this script on the exact object to show/hide,
-        // you don’t have to assign it in the Inspector.
         if (!lighterObj) lighterObj = gameObject;
         if (lighterObj) lighterObj.SetActive(startOn);
     }

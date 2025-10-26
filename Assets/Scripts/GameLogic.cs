@@ -5,7 +5,7 @@ public class GameLogic : MonoBehaviour
 {
     [Header("UI")]
     [SerializeField] TMP_Text counter;
-    [SerializeField] int totalPages = 8;
+    [SerializeField] public int totalPages = 8;
 
     private const string CounterObjectName = "PageCounter";
 

@@ -9,7 +9,7 @@ public class WeaponsUIManager : MonoBehaviour
     void OnEnable()
     {
         GameEvents.WeaponChanged += OnWeaponChanged;
-        OnWeaponChanged(SaveScript.weaponID); // initial sync
+        OnWeaponChanged(SaveScript.weaponID); 
     }
     void OnDisable()
     {

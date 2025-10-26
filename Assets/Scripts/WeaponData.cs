@@ -18,17 +18,17 @@ public class WeaponData : ScriptableObject
 
     [Header("Combat")]
     public int damage = 10;                 // melee/gun damage per hit
-    public string reactTrigger = "";        // optional (e.g., "react", "axeReact")
+    public string reactTrigger = "";       
     
 
     [Header("Audio - Guns")]
     public AudioClip fireSfx;
     public AudioClip emptySfx;
-    public AudioClip loopSfx; // spray
+    public AudioClip loopSfx;     // spray
 
     [Header("Audio - Melee")]
-    public AudioClip swingSfx;     // whoosh at button press
-    public AudioClip hitSfx;       // IMPACT when we hit a zombie
+    public AudioClip swingSfx;     // sound at button press
+    public AudioClip hitSfx;       // when we hit a zombie
 
     [Header("UI (optional)")]
     public string displayName;

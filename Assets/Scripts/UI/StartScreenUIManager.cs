@@ -9,8 +9,8 @@ public class StartScreenUIManager : MonoBehaviour
 
 {
 
-    [SerializeField] private GameObject mainMenuRoot;   // your current main screen/root
-    [SerializeField] private GameObject difficultyPanel; // assign in Inspector
+    [SerializeField] private GameObject mainMenuRoot;   
+    [SerializeField] private GameObject difficultyPanel; 
     
     [Header("Buttons")]
     [SerializeField] Button startButton;

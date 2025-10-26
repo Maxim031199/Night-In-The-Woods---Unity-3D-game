@@ -53,10 +53,8 @@ public class ZombieScript : MonoBehaviour
         targets = GameObject.FindGameObjectsWithTag("Target");
         player = GameObject.Find("Player");
         chaseMusicPlayer = GameObject.Find("ChaseMusic").GetComponent<AudioSource>();
-        // --- Minimal ScriptableObject integration ---
         if (data != null)
         {
-            // Map SO.layerName -> enum (keeps your existing flow)
             if (!string.IsNullOrEmpty(data.layerName))
             {
                 string n = data.layerName.ToLowerInvariant();
@@ -65,7 +63,7 @@ public class ZombieScript : MonoBehaviour
                 else if (n == "alert") zombieStyle = ZombieType.alert;
             }
 
-            // Use animator layer by NAME when provided (safer)
+            // Use animator layer by its NAME
             if (!string.IsNullOrEmpty(data.layerName) && anim)
             {
                 int active = anim.GetLayerIndex(data.layerName);
@@ -82,7 +80,7 @@ public class ZombieScript : MonoBehaviour
             }
             else
             {
-                // fallback: old behavior
+                // old behavior
                 anim.SetLayerWeight(((int)zombieStyle + 1), 1);
             }
 
@@ -93,17 +91,17 @@ public class ZombieScript : MonoBehaviour
             randomState = data.randomState;
             randomTiming = data.randomTiming;
 
-            // Movement speed: prefer SO.walkSpeed, else old array
+            // Movement speed
             agent.speed = data.walkSpeed;
         }
         else
         {
-            // Original defaults (no SO)
+            // Original defaults 
             zombieAlertRange = Random.Range(5.1f, 35f);
             anim.SetLayerWeight(((int)zombieStyle + 1), 1);
             agent.speed = walkSpeed[(int)zombieStyle];
         }
-        // --- end SO integration ---
+
 
         if (zombieStyle == ZombieType.shuffle)
             transform.position = new Vector3(transform.position.x, transform.position.y + yAdjustment, transform.position.z);

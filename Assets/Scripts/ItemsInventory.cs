@@ -229,9 +229,6 @@ public class ItemsInventory : MonoBehaviour
     {
         itemButtons = GetComponentsInChildren<UIButton>(true);
         WireItemButtons();
-#if UNITY_EDITOR
-        UnityEditor.EditorUtility.SetDirty(this);
-#endif
     }
 }
 

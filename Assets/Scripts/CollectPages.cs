@@ -12,7 +12,7 @@ public class CollectPages : MonoBehaviour
 
     [Header("Audio")]
     [SerializeField] private AudioSource pickupSound;
-    
+
 
     [Header("Gameplay")]
     [SerializeField] private GameObject monster;
@@ -23,13 +23,13 @@ public class CollectPages : MonoBehaviour
     [Header("Slender Difficulty")]
     [SerializeField] private SlenderManAI slenderAI;
 
-    // --- internal ---
+
     private Transform player;
     private bool inReach;
     public static int PagesCollected;
 
-    // --- New Input System (same pattern as SaveScript) ---
-    private GameInputActions input;   // generated C# class from your .inputactions
+
+    private GameInputActions input;   
     private bool pickupQueued;        // set by the input callback
 
     void Awake()
@@ -45,13 +45,13 @@ public class CollectPages : MonoBehaviour
             UpdateCounterUI();
         }
 
-        input = new GameInputActions();          // create actions (no inspector refs needed)
+        input = new GameInputActions();          // create actions 
     }
 
     void OnEnable()
     {
         input.Player.Enable();
-        input.Player.pickup.performed += OnPickupPerformed;   // E key by your binding
+        input.Player.pickup.performed += OnPickupPerformed;   // E key 
     }
 
     void OnDisable()
@@ -62,7 +62,6 @@ public class CollectPages : MonoBehaviour
 
     private void OnPickupPerformed(InputAction.CallbackContext _)
     {
-        // Queue; we'll validate range & UI state in Update()
         pickupQueued = true;
     }
 
@@ -82,7 +81,6 @@ public class CollectPages : MonoBehaviour
         if (pickupQueued)
         {
             pickupQueued = false; // consume once
-            // Optional gate if you don’t want pickups while inventory is open:
             if (inReach && !GameUIState.InventoryOpen) Collect();
         }
     }
@@ -98,7 +96,7 @@ public class CollectPages : MonoBehaviour
         if (pickupSound) pickupSound.Play();
 
         int idx = PagesCollected - 1;
-        
+
 
         if (promptUI) promptUI.SetActive(false);
         gameObject.SetActive(false);
@@ -134,11 +132,4 @@ public class CollectPages : MonoBehaviour
         slenderAI.staticActivationRange += dStaticRange;
     }
 
-#if UNITY_EDITOR
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, reachRadius);
-    }
-#endif
 }

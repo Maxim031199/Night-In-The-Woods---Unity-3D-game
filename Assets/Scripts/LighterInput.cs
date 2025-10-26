@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 public class LighterInput : MonoBehaviour
 {
-    [SerializeField] private Key toggleKey = Key.L; // change to any key
+    [SerializeField] private Key toggleKey = Key.L; 
     private bool isOn;
 
     void Update()

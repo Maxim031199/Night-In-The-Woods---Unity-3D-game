@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 public class PauseMenu : MonoBehaviour
 {
     [Header("UI Roots")]
-    [SerializeField] GameObject pauseCanvas;   // whole Pause UI canvas (enable/disable this)
+    [SerializeField] GameObject pauseCanvas;   // whole Pause UI canvas (enable and disable)
     [SerializeField] GameObject pauseRoot;     // main panel (Resume/Options/Exit)
     [SerializeField] GameObject optionsPanel;
     [SerializeField] GameObject creditsPanel;
@@ -14,7 +14,7 @@ public class PauseMenu : MonoBehaviour
     [SerializeField] string menuSceneName = "Menu";
 
     [Header("Input (New Input System)")]
-    [SerializeField] InputActionReference backAction; // optional; if empty we bind <Keyboard>/escape
+    [SerializeField] InputActionReference backAction; 
     InputAction _back;
 
     void Awake()
@@ -48,7 +48,7 @@ public class PauseMenu : MonoBehaviour
         TogglePause();
     }
 
-    // ===== public button hooks =====
+    // button hooks
     public void Resume() => SetPaused(false);
     public void OpenOptions() => ShowOnly(optionsPanel);
     public void OpenCredits() => ShowOnly(creditsPanel);
@@ -65,7 +65,7 @@ public class PauseMenu : MonoBehaviour
         SetPaused(wantPause);
     }
 
-    // ===== core =====
+    // core code part we did
     void SetPaused(bool paused)
     {
         Time.timeScale = paused ? 0f : 1f;

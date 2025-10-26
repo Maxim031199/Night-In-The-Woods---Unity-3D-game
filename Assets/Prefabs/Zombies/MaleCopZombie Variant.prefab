@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &5152329804961614885
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 82136284144973985, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: Loop
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1581066432591897852, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 499.016
+      objectReference: {fileID: 0}
+    - target: {fileID: 1581066432591897852, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 18.833
+      objectReference: {fileID: 0}
+    - target: {fileID: 1581066432591897852, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 176.236
+      objectReference: {fileID: 0}
+    - target: {fileID: 1581066432591897852, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.749536
+      objectReference: {fileID: 0}
+    - target: {fileID: 1581066432591897852, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1581066432591897852, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.66196364
+      objectReference: {fileID: 0}
+    - target: {fileID: 1581066432591897852, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1581066432591897852, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1581066432591897852, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 82.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1581066432591897852, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2221727958207393886, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: data
+      value: 
+      objectReference: {fileID: 11400000, guid: 1ddecb449518e3a4b8ccfc17473d1f0d, type: 2}
+    - target: {fileID: 5967538651755736397, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: data
+      value: 
+      objectReference: {fileID: 11400000, guid: 1ddecb449518e3a4b8ccfc17473d1f0d, type: 2}
+    - target: {fileID: 5993779031788528260, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: data
+      value: 
+      objectReference: {fileID: 11400000, guid: 1ddecb449518e3a4b8ccfc17473d1f0d, type: 2}
+    - target: {fileID: 5993779031788528260, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: randomState
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6110285015602501663, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: m_IsTrigger
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7413021868984023753, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: m_Name
+      value: MaleCopZombie Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 8385794990296371387, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: m_Speed
+      value: 0.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806325196083819733, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: data
+      value: 
+      objectReference: {fileID: 11400000, guid: 1ddecb449518e3a4b8ccfc17473d1f0d, type: 2}
+    - target: {fileID: 8908219416439405826, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 4653834b15711334b9476d91c0ebc5dc, type: 3}
