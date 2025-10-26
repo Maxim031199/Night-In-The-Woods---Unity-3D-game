@@ -3,16 +3,30 @@ using UnityEngine.InputSystem;
 
 public class LighterInput : MonoBehaviour
 {
-    [SerializeField] private Key toggleKey = Key.L; 
+    [SerializeField] private InputActionReference lighterAction; 
     private bool isOn;
 
-    void Update()
+    void OnEnable()
     {
-        var kb = Keyboard.current;
-        if (kb != null && kb[toggleKey].wasPressedThisFrame)
-        {
-            isOn = !isOn;
-            GameEvents.ToggleLighter(isOn);
-        }
+        var action = lighterAction ? lighterAction.action : null;
+        if (action == null) return;
+
+        action.performed += OnToggle;
+        action.Enable();
+    }
+
+    void OnDisable()
+    {
+        var action = lighterAction ? lighterAction.action : null;
+        if (action == null) return;
+
+        action.performed -= OnToggle;
+        action.Disable();
+    }
+
+    private void OnToggle(InputAction.CallbackContext _)
+    {
+        isOn = !isOn;
+        GameEvents.ToggleLighter(isOn);
     }
 }

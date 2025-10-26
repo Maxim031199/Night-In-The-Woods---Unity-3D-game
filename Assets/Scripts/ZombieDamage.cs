@@ -4,18 +4,32 @@ using UnityEngine.AI;
 [DisallowMultipleComponent]
 public class ZombieDamage : MonoBehaviour
 {
-    [SerializeField] private ZombieData data;         
-    [SerializeField] private GameObject bloodSplat;    
-    [SerializeField] private Collider[] hitColliders;  
+    [SerializeField] private ZombieData data;
+    [SerializeField] private GameObject bloodSplat;
+    [SerializeField] private Collider[] hitColliders;
 
     Animator zombieAnim;
     AudioSource damagePlayer;
     NavMeshAgent agent;
-    [SerializeField] float meleeHitCooldown = 0.15f;
+
+    [Header("Hit / Death")]
+    [SerializeField, Min(0f)] float meleeHitCooldown = 0.15f;
+    [SerializeField, Min(0f)] float deathDestroyDelay = DefaultDeathDestroyDelay;
+
     float nextHitTime;
     int health;
     bool death;
-    private float deathDestroyDelay = 5f;
+
+
+    private const int ZeroInt = 0;
+    private const float DefaultDeathDestroyDelay = 5f;
+
+    private static class AnimParams
+    {
+        public const string React = "react";
+        public const string IsDead = "isDead";
+        public const string Dead = "dead";
+    }
 
     void OnValidate()
     {
@@ -43,30 +57,29 @@ public class ZombieDamage : MonoBehaviour
 
         if (bloodSplat) Instantiate(bloodSplat, hitPoint, Quaternion.identity);
 
-        health -= Mathf.Max(0, damage);
+        health -= Mathf.Max(ZeroInt, damage);
 
-        if (health > 0)
+        if (health > ZeroInt)
         {
             if (data.hitSfx && damagePlayer) damagePlayer.PlayOneShot(data.hitSfx);
-            zombieAnim.SetTrigger("react");
+            if (zombieAnim) zombieAnim.SetTrigger(AnimParams.React);
             return;
         }
 
         DeathSequence();
     }
 
-
     void OnTriggerEnter(Collider other)
     {
         if (death || Time.time < nextHitTime) return;
 
-        var hit = other.GetComponent<WeaponHit>();   // holds WeaponData
+        var hit = other.GetComponent<WeaponHit>();
         if (!hit || hit.data == null) return;
 
         nextHitTime = Time.time + meleeHitCooldown;
 
         // Damage
-        health -= Mathf.Max(0, hit.data.damage);
+        health -= Mathf.Max(ZeroInt, hit.data.damage);
 
         // Blood and VFX
         var pos = other.ClosestPoint(transform.position);
@@ -79,10 +92,8 @@ public class ZombieDamage : MonoBehaviour
         var trig = hit.data.reactTrigger;
         if (!string.IsNullOrEmpty(trig)) zombieAnim.SetTrigger(trig);
 
-        if (health <= 0) DeathSequence();
+        if (health <= ZeroInt) DeathSequence();
     }
-
-
 
     void DeathSequence()
     {
@@ -93,8 +104,11 @@ public class ZombieDamage : MonoBehaviour
         if (hitColliders != null)
             foreach (var c in hitColliders) if (c) c.enabled = false;
 
-        zombieAnim.SetBool("isDead", true);
-        zombieAnim.SetTrigger("dead");
+        if (zombieAnim)
+        {
+            zombieAnim.SetBool(AnimParams.IsDead, true);
+            zombieAnim.SetTrigger(AnimParams.Dead);
+        }
 
         if (data.deathSfx && damagePlayer) damagePlayer.PlayOneShot(data.deathSfx);
 

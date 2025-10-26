@@ -31,8 +31,20 @@ public class WeaponManager : MonoBehaviour
 
     public int CurrentWeaponIndex => weaponID;
 
+
+    private const int MinIndex = 0;
+    private const int FallbackArrayLength = 1;
+    private const int PistolIndex = 4;
+    private const int ShotgunIndex = 5;
+    private const int SprayIndex = 6;            // already used by gameplay
+    private const int LighterItemIndex = 2;
+    private const int MouseButtonLeft = 0;
+
+    private const float Zero = 0f;
+    private const float SprayStartDelay = 0.3f;
+    private const float PausedTimeScale = 0f;
+
     int weaponID = 0;
-    const int SprayIndex = 6, LighterItemIndex = 2;
 
     void Start()
     {
@@ -41,9 +53,9 @@ public class WeaponManager : MonoBehaviour
 
         if (!audioPlayer) audioPlayer = gameObject.AddComponent<AudioSource>();
         audioPlayer.playOnAwake = false;
-        audioPlayer.spatialBlend = 0f; 
+        audioPlayer.spatialBlend = 0f;
 
-        weaponID = Mathf.Clamp((int)chosenWeapon, 0, (weapons?.Length ?? 1) - 1);
+        weaponID = Mathf.Clamp((int)chosenWeapon, MinIndex, (weapons?.Length ?? FallbackArrayLength) - 1);
         SaveScript.weaponID = weaponID;
         ChangeWeapons();
     }
@@ -51,7 +63,7 @@ public class WeaponManager : MonoBehaviour
     void Update()
     {
         var kb = Keyboard.current;
-        if (kb == null || GameUIState.InventoryOpen || Time.timeScale == 0f) return;
+        if (kb == null || GameUIState.InventoryOpen || Time.timeScale == PausedTimeScale) return;
 
         if (weapons != null && weapons.Length > 0)
         {
@@ -62,25 +74,21 @@ public class WeaponManager : MonoBehaviour
             }
             if (kb.zKey.wasPressedThisFrame)
             {
-                SaveScript.weaponID = Mathf.Max(SaveScript.weaponID - 1, 0);
+                SaveScript.weaponID = Mathf.Max(SaveScript.weaponID - 1, MinIndex);
                 ChangeWeapons();
             }
         }
 
         int id = SaveScript.weaponID;
 
-        const int PistolIndex = 4;
-        const int ShotgunIndex = 5;
-        const int SprayIndexLocal = 6;
-
-        if (id == SprayIndexLocal)
+        if (id == SprayIndex)
         {
-            bool held = Mouse.current != null ? Mouse.current.leftButton.isPressed : Input.GetMouseButton(0);
-            bool released = Mouse.current != null ? Mouse.current.leftButton.wasReleasedThisFrame : Input.GetMouseButtonUp(0);
+            bool held = Mouse.current != null ? Mouse.current.leftButton.isPressed : Input.GetMouseButton(MouseButtonLeft);
+            bool released = Mouse.current != null ? Mouse.current.leftButton.wasReleasedThisFrame : Input.GetMouseButtonUp(MouseButtonLeft);
 
             var spray = sprayPanel ? sprayPanel.GetComponent<SprayScript>() : null;
 
-            if (held && spray != null && spray.sprayAmount > 0.0f)
+            if (held && spray != null && spray.sprayAmount > Zero)
             {
                 if (!spraySoundOn)
                 {
@@ -91,7 +99,7 @@ public class WeaponManager : MonoBehaviour
                 return;
             }
 
-            if ((released && spraySoundOn) || (spray != null && spray.sprayAmount <= 0.0f))
+            if ((released && spraySoundOn) || (spray != null && spray.sprayAmount <= Zero))
             {
                 anim?.SetTrigger("Release");
                 spraySoundOn = false;
@@ -107,10 +115,10 @@ public class WeaponManager : MonoBehaviour
 
         bool attackPressed = Mouse.current != null
             ? Mouse.current.leftButton.wasPressedThisFrame
-            : Input.GetMouseButtonDown(0);
+            : Input.GetMouseButtonDown(MouseButtonLeft);
         if (!attackPressed) return;
 
-        if (id < 0) return;
+        if (id < MinIndex) return;
 
         bool isGun = (weaponData != null && id < weaponData.Length && weaponData[id] != null)
             ? weaponData[id].isGun
@@ -120,7 +128,6 @@ public class WeaponManager : MonoBehaviour
         {
             anim?.SetTrigger(attackTriggerParam);
 
-            // use swingSfx for melee swing
             var swingClip = (weaponData != null && id < weaponData.Length && weaponData[id] != null)
                 ? weaponData[id].swingSfx
                 : null;
@@ -150,7 +157,7 @@ public class WeaponManager : MonoBehaviour
                 audioPlayer.Play();
             }
 
-            SaveScript.currentAmmo[id] = Mathf.Max(0, ammo - 1);
+            SaveScript.currentAmmo[id] = Mathf.Max(MinIndex, ammo - 1);
         }
         else
         {
@@ -166,7 +173,7 @@ public class WeaponManager : MonoBehaviour
     {
         if (weapons == null || weapons.Length == 0) return;
 
-        int clamped = Mathf.Clamp(index, 0, weapons.Length - 1);
+        int clamped = Mathf.Clamp(index, MinIndex, weapons.Length - 1);
         SaveScript.weaponID = clamped;
         ChangeWeapons();
     }
@@ -178,7 +185,7 @@ public class WeaponManager : MonoBehaviour
         foreach (var w in weapons) if (w) w.SetActive(false);
 
         int id = SaveScript.weaponID;
-        if (id >= 0 && id < weapons.Length && weapons[id])
+        if (id >= MinIndex && id < weapons.Length && weapons[id])
             weapons[id].SetActive(true);
 
         chosenWeapon = (WeaponSelect)id;
@@ -216,7 +223,7 @@ public class WeaponManager : MonoBehaviour
 
     IEnumerator StartSpraySound()
     {
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(SprayStartDelay);
 
         int id = SaveScript.weaponID;
         var loop = (weaponData != null && id < weaponData.Length && weaponData[id] != null)

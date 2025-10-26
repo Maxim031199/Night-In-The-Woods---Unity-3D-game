@@ -17,14 +17,14 @@ public class WeaponData : ScriptableObject
     public float fireCooldown = 0f;
 
     [Header("Combat")]
-    public int damage = 10;                 // melee/gun damage per hit
+    public int damage = 10;                 // (default placeholder)
     public string reactTrigger = "";       
     
 
     [Header("Audio - Guns")]
     public AudioClip fireSfx;
     public AudioClip emptySfx;
-    public AudioClip loopSfx;     // spray
+    public AudioClip loopSfx;     // spray loop sound
 
     [Header("Audio - Melee")]
     public AudioClip swingSfx;     // sound at button press

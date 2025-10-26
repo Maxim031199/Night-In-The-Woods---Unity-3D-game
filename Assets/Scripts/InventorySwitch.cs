@@ -7,7 +7,7 @@ public class InventorySwitch : MonoBehaviour
     [Header("Panels")]
     [SerializeField] private GameObject weaponsPanel;
     [SerializeField] private GameObject itemsPanel;
-    [SerializeField] private GameObject combinePanel;  
+    [SerializeField] private GameObject combinePanel;
 
     [Header("First Selectable (optional)")]
     [SerializeField] private Selectable weaponsFirstSelect;

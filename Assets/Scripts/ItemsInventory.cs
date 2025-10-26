@@ -1,6 +1,4 @@
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.UI;
 
 using UIImage = UnityEngine.UI.Image;
 using UIText = UnityEngine.UI.Text;
@@ -12,7 +10,7 @@ public class ItemsInventory : MonoBehaviour
     [SerializeField] private Sprite[] bigIcons;
     [SerializeField] private UIImage bigIcon;
 
-    [Header("Item Buttons (order = itemNumber)")]
+    [Header("Item Buttons")]
     [SerializeField] private UIButton[] itemButtons;
 
     [SerializeField] private string[] titles;
@@ -25,28 +23,22 @@ public class ItemsInventory : MonoBehaviour
     [Header("Action Buttons")]
     [SerializeField] private GameObject useButton;
     [SerializeField] private GameObject combineButton;
-
-    [Tooltip("Item indices that should show Combine instead of Use. Default: 0..3")]
     [SerializeField] private int[] forceCombineFor = new int[] { 0, 1, 2, 3 };
-
-    [Tooltip("Item indices that should show Use even if forceCombineFor also contains them.")]
     [SerializeField] private int[] forceUseFor;
-
-    [Tooltip("Item indices that hide both buttons (neither Use nor Combine).")]
     [SerializeField] private int[] hideBothFor;
 
-    [Header("Inventory UI SFX (optional)")]
+    [Header("Inventory UI SFX")]
     [SerializeField] private AudioClip clickSfx;
     [SerializeField] private AudioClip selectSfx;
     [SerializeField] private AudioSource uiAudio;
     [SerializeField] private float uiSfxCooldown = DefaultUiSfxCooldown;
 
-    [Header("Links (optional)")]
+    [Header("Links")]
     [SerializeField] private ItemsManager itemsManager;
 
-    [Header("Events (optional)")]
-    public UnityEvent<int> OnUseItem;
-    public UnityEvent<int> OnCombineItem;
+    [Header("Events")]
+    public UnityEngine.Events.UnityEvent<int> OnUseItem;
+    public UnityEngine.Events.UnityEvent<int> OnCombineItem;
 
     [Header("Start")]
     [SerializeField] private int startItemNumber = DefaultStartItemNumber;
@@ -54,13 +46,14 @@ public class ItemsInventory : MonoBehaviour
     private int currentItemNumber = InvalidItemNumber;
     private float nextUiSfxAllowed = 0f;
 
+
     private const float DefaultUiSfxCooldown = 0.05f;
     private const int DefaultStartItemNumber = 0;
     private const int InvalidItemNumber = -1;
 
-    private int updateHealth;
-    private float updateStamina;
-    private float updateInfection;
+    private const int MinIndex = 0;
+    private const int MinCount = 0;
+    private const bool IncludeInactive = true;
 
     void Awake()
     {
@@ -80,7 +73,7 @@ public class ItemsInventory : MonoBehaviour
         int max = GetMaxCount();
         if (max == 0) return;
 
-        startItemNumber = Mathf.Clamp(startItemNumber, 0, max - 1);
+        startItemNumber = Mathf.Clamp(startItemNumber, MinIndex, max - 1);
         SelectIndex(startItemNumber);
     }
 
@@ -122,7 +115,7 @@ public class ItemsInventory : MonoBehaviour
     private void ChooseItem(int itemNumber)
     {
         int max = GetMaxCount();
-        if (max == 0 || itemNumber < 0 || itemNumber >= max || itemNumber == currentItemNumber) return;
+        if (max == 0 || itemNumber < MinIndex || itemNumber >= max || itemNumber == currentItemNumber) return;
 
         PlayUiSfx(clickSfx);
         UpdateItemUI(itemNumber);
@@ -141,10 +134,10 @@ public class ItemsInventory : MonoBehaviour
         }
 
         if (title)
-            title.text = (titles != null && itemNumber < titles.Length) ? (titles[itemNumber] ?? "") : "";
+            title.text = (titles != null && itemNumber < titles.Length) ? (titles[itemNumber] ?? string.Empty) : string.Empty;
 
         if (description)
-            description.text = (descriptions != null && itemNumber < descriptions.Length) ? (descriptions[itemNumber] ?? "") : "";
+            description.text = (descriptions != null && itemNumber < descriptions.Length) ? (descriptions[itemNumber] ?? string.Empty) : string.Empty;
     }
 
     private void UpdateActionButtons(int itemNumber)
@@ -202,11 +195,11 @@ public class ItemsInventory : MonoBehaviour
 
     private int GetMaxCount()
     {
-        int a = bigIcons != null ? bigIcons.Length : 0;
-        int b = titles != null ? titles.Length : 0;
-        int c = descriptions != null ? descriptions.Length : 0;
-        int d = itemButtons != null ? itemButtons.Length : 0;
-        return Mathf.Max(0, Mathf.Max(a, Mathf.Max(b, Mathf.Max(c, d))));
+        int a = bigIcons != null ? bigIcons.Length : MinCount;
+        int b = titles != null ? titles.Length : MinCount;
+        int c = descriptions != null ? descriptions.Length : MinCount;
+        int d = itemButtons != null ? itemButtons.Length : MinCount;
+        return Mathf.Max(MinCount, Mathf.Max(a, Mathf.Max(b, Mathf.Max(c, d))));
     }
 
     private void WireItemButtons()
@@ -224,10 +217,10 @@ public class ItemsInventory : MonoBehaviour
         }
     }
 
-    [ContextMenu("Auto-Find Buttons Under Children")]
+    [ContextMenu("Auto Find Buttons Under Children")]
     private void AutoFindButtons()
     {
-        itemButtons = GetComponentsInChildren<UIButton>(true);
+        itemButtons = GetComponentsInChildren<UIButton>(IncludeInactive);
         WireItemButtons();
     }
 }

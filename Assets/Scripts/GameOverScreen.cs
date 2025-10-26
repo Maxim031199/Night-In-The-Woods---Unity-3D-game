@@ -65,6 +65,7 @@ public class GameOverScreen : MonoBehaviour
         }
 
         shown = true;
+        GameUIState.InventoryOpen = true;           //same check to force cursor 
         Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;

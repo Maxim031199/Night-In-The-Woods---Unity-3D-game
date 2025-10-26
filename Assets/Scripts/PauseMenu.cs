@@ -5,8 +5,8 @@ using UnityEngine.SceneManagement;
 public class PauseMenu : MonoBehaviour
 {
     [Header("UI Roots")]
-    [SerializeField] GameObject pauseCanvas;   // whole Pause UI canvas (enable and disable)
-    [SerializeField] GameObject pauseRoot;     // main panel (Resume/Options/Exit)
+    [SerializeField] GameObject pauseCanvas;
+    [SerializeField] GameObject pauseRoot;     
     [SerializeField] GameObject optionsPanel;
     [SerializeField] GameObject creditsPanel;
 
@@ -14,12 +14,19 @@ public class PauseMenu : MonoBehaviour
     [SerializeField] string menuSceneName = "Menu";
 
     [Header("Input (New Input System)")]
-    [SerializeField] InputActionReference backAction; 
-    InputAction _back;
+    [SerializeField] InputActionReference backAction;
+    [SerializeField] string backBinding = "<Keyboard>/escape";   
+    [SerializeField] string backActionName = "Back";             
+
+    [Header("Timing")]
+    private const float PausedTimeScale = 0f;    
+    private const float UnpausedTimeScale = 1f;  
+
+    private InputAction _back;
 
     void Awake()
     {
-        if (pauseCanvas) pauseCanvas.SetActive(false);  // hidden on start
+        if (pauseCanvas) pauseCanvas.SetActive(false);  
         ShowOnly(pauseRoot);
     }
 
@@ -27,7 +34,7 @@ public class PauseMenu : MonoBehaviour
     {
         _back = backAction != null
             ? backAction.action
-            : new InputAction(type: InputActionType.Button, binding: "<Keyboard>/escape");
+            : new InputAction(name: backActionName, type: InputActionType.Button, binding: backBinding);
 
         _back.performed += OnBackPerformed;
         _back.Enable();
@@ -60,7 +67,7 @@ public class PauseMenu : MonoBehaviour
     }
 
     public void TogglePause()
-    { 
+    {
         bool wantPause = !(pauseCanvas != null && pauseCanvas.activeSelf);
         SetPaused(wantPause);
     }
@@ -68,13 +75,13 @@ public class PauseMenu : MonoBehaviour
     // core code part we did
     void SetPaused(bool paused)
     {
-        Time.timeScale = paused ? 0f : 1f;
+        Time.timeScale = paused ? PausedTimeScale : UnpausedTimeScale;
         SaveScript.inventoryOpen = paused;
         Cursor.lockState = paused ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = paused;
 
         if (pauseCanvas) pauseCanvas.SetActive(paused);
-        if (paused) ShowOnly(pauseRoot); // always land on root when opening
+        if (paused) ShowOnly(pauseRoot); 
     }
 
     void ShowOnly(GameObject panelToShow)

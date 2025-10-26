@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(CharacterController))]
+
 public class FPController : MonoBehaviour
 {
     [Header("Input")]
@@ -33,7 +33,6 @@ public class FPController : MonoBehaviour
 
     [Header("Zoom")]
     [SerializeField] private float normalFOV = 60f;
-    
 
     private CharacterController cc;
     private float yVel;
@@ -41,11 +40,15 @@ public class FPController : MonoBehaviour
     private float targetHeight;
     public static float FPSstamina = 100;
     private float runSpeedAmt;
-    private const float initialGroundVelocity = -1f;
-    private const float crouchHeightClampMin = 0.9f;
-    private const float crouchHeightClampOffset = 0.2f;
-    private const float centerHeightFactor = 0.5f;
-    private const float smoothingBase = 1f;
+
+
+    private const float InitialGroundVelocity = -1f;
+    private const float CrouchHeightClampMin = 0.9f;
+    private const float CrouchHeightClampOffset = 0.2f;
+    private const float CenterHeightFactor = 0.5f;
+    private const float SmoothingBase = 1f;
+    private const float Zero = 0f;
+    private const float LowStaminaThreshold = 20f;
 
     void Awake()
     {
@@ -58,9 +61,9 @@ public class FPController : MonoBehaviour
         if (playerCamera) playerCamera.fieldOfView = normalFOV;
 
         standHeight = Mathf.Max(standHeight, crouchHeight);
-        crouchHeight = Mathf.Clamp(crouchHeight, crouchHeightClampMin, standHeight - crouchHeightClampOffset);
+        crouchHeight = Mathf.Clamp(crouchHeight, CrouchHeightClampMin, standHeight - CrouchHeightClampOffset);
         cc.height = standHeight;
-        cc.center = new Vector3(cc.center.x, standHeight * centerHeightFactor, cc.center.z);
+        cc.center = new Vector3(cc.center.x, standHeight * CenterHeightFactor, cc.center.z);
         targetHeight = standHeight;
         runSpeedAmt = sprintSpeed;
     }
@@ -72,7 +75,6 @@ public class FPController : MonoBehaviour
         if (jumpAction) jumpAction.action.Enable();
         if (sprintAction) sprintAction.action.Enable();
         if (crouchAction) crouchAction.action.Enable();
-        
     }
 
     void OnDisable()
@@ -82,7 +84,6 @@ public class FPController : MonoBehaviour
         if (jumpAction) jumpAction.action.Disable();
         if (sprintAction) sprintAction.action.Disable();
         if (crouchAction) crouchAction.action.Disable();
-        
     }
 
     void Update()
@@ -90,9 +91,13 @@ public class FPController : MonoBehaviour
         float dt = Time.deltaTime;
 
         Vector2 look = lookAction ? lookAction.action.ReadValue<Vector2>() : Vector2.zero;
-        transform.Rotate(0f, look.x * lookSensitivity * dt, 0f);
+
+
+        transform.Rotate(Vector3.up * (look.x * lookSensitivity * dt));
+
+
         pitch = Mathf.Clamp(pitch - look.y * lookSensitivity * dt, -pitchClamp, pitchClamp);
-        if (playerCamera) playerCamera.transform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+        if (playerCamera) playerCamera.transform.localRotation = Quaternion.Euler(pitch, Zero, Zero);
 
         bool isCrouching =
             (crouchAction && crouchAction.action.IsPressed()) ||
@@ -102,19 +107,18 @@ public class FPController : MonoBehaviour
         Vector3 wish = (transform.right * move.x + transform.forward * move.y).normalized;
 
         float speed = (sprintAction && sprintAction.action.IsPressed()) ? sprintSpeed : walkSpeed;
-        if(FPSstamina < 20)
-        {
+
+
+        if (FPSstamina < LowStaminaThreshold)
             sprintSpeed = walkSpeed;
-        }
         else
-        {
             sprintSpeed = runSpeedAmt;
-        }
+
         if (isCrouching) speed *= crouchSpeedMultiplier;
 
         if (cc.isGrounded)
         {
-            yVel = initialGroundVelocity;
+            yVel = InitialGroundVelocity;
             if (jumpAction && jumpAction.action.WasPressedThisFrame() && !isCrouching)
             {
                 yVel = jumpPower;
@@ -129,12 +133,10 @@ public class FPController : MonoBehaviour
         cc.Move((wish * speed + Vector3.up * yVel) * dt);
 
         targetHeight = isCrouching ? crouchHeight : standHeight;
-        float k = smoothingBase - Mathf.Exp(-crouchLerp * dt);
+        float k = SmoothingBase - Mathf.Exp(-crouchLerp * dt);
         cc.height = Mathf.Lerp(cc.height, targetHeight, k);
         Vector3 c = cc.center;
-        c.y = Mathf.Lerp(c.y, cc.height * centerHeightFactor, k);
+        c.y = Mathf.Lerp(c.y, cc.height * CenterHeightFactor, k);
         cc.center = c;
-
-        
     }
 }

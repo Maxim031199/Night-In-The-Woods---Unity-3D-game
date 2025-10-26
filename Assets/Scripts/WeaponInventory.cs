@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
+
 public class WeaponInventory : MonoBehaviour
 {
     [Header("UI Data")]
@@ -39,14 +40,24 @@ public class WeaponInventory : MonoBehaviour
     int currentIndex = -1;
     float nextUiSfxAllowed = 0f;
 
+
     private const int DefaultItemsOwnedSize = 8;
     private const int FirstCombineWeaponIndex = 6;
     private const int SecondCombineWeaponIndex = 7;
     private const int SlotAIndex = 2;
     private const int SlotBIndex = 3;
+
     private const float OwnedAlpha = 1f;
     private const float NotOwnedAlpha = 0.06f;
     private const float UiSfxCooldown = 0.05f;
+
+    private const int MinIndex = 0;
+    private const int Slot0 = 0;
+    private const int Slot1 = 1;
+    private const int EnsureMinOwnedSize = 4;
+    private const int AtLeastOne = 1;
+
+    private const float ColorOne = 1f;   // RGB=1 for white
 
     void Awake()
     {
@@ -58,15 +69,15 @@ public class WeaponInventory : MonoBehaviour
         uiAudio.spatialBlend = 0f;
         uiAudio.ignoreListenerPause = true;
 
-        EnsureItemsOwnedSize(4);
+        EnsureItemsOwnedSize(EnsureMinOwnedSize);
     }
 
     void Start()
     {
-        if (weaponManager != null && weaponManager.CurrentWeaponIndex >= 0)
+        if (weaponManager != null && weaponManager.CurrentWeaponIndex >= MinIndex)
             startIndex = weaponManager.CurrentWeaponIndex;
 
-        startIndex = Mathf.Clamp(startIndex, 0, GetMaxCount() - 1);
+        startIndex = Mathf.Clamp(startIndex, MinIndex, GetMaxCount() - 1);
         SelectIndex(startIndex);
 
         if (combinePanel) combinePanel.SetActive(false);
@@ -105,12 +116,12 @@ public class WeaponInventory : MonoBehaviour
 
         if (currentIndex == FirstCombineWeaponIndex)
         {
-            ShowCombineSlot(1, false);
+            ShowCombineSlot(Slot1, false);
             if (combineUseButton) combineUseButton.SetActive(IsOwned(SlotAIndex));
         }
         else if (currentIndex == SecondCombineWeaponIndex)
         {
-            ShowCombineSlot(1, true);
+            ShowCombineSlot(Slot1, true);
             if (combineUseButton) combineUseButton.SetActive(IsOwned(SlotAIndex) && IsOwned(SlotBIndex));
         }
         else
@@ -124,7 +135,7 @@ public class WeaponInventory : MonoBehaviour
     public void ChooseWeapon(int index)
     {
         int n = GetMaxCount();
-        if (n == 0 || index < 0 || index >= n || index == currentIndex) return;
+        if (n == 0 || index < MinIndex || index >= n || index == currentIndex) return;
 
         PlayUiSfx(clickSfx);
 
@@ -151,8 +162,8 @@ public class WeaponInventory : MonoBehaviour
             bigIcon.enabled = sprite != null;
         }
 
-        if (title) title.text = (titles != null && index < titles.Length) ? (titles[index] ?? "") : "";
-        if (description) description.text = (descriptions != null && index < descriptions.Length) ? (descriptions[index] ?? "") : "";
+        if (title) title.text = (titles != null && index < titles.Length) ? (titles[index] ?? string.Empty) : string.Empty;
+        if (description) description.text = (descriptions != null && index < descriptions.Length) ? (descriptions[index] ?? string.Empty) : string.Empty;
     }
 
     void PlayUiSfx(AudioClip clip)
@@ -170,17 +181,17 @@ public class WeaponInventory : MonoBehaviour
         int a = bigIcons != null ? bigIcons.Length : 0;
         int b = titles != null ? titles.Length : 0;
         int c = descriptions != null ? descriptions.Length : 0;
-        return Mathf.Max(1, Mathf.Max(a, Mathf.Max(b, c)));
+        return Mathf.Max(AtLeastOne, Mathf.Max(a, Mathf.Max(b, c)));
     }
 
     void UpdateCombineSlots()
     {
         if (combineItems == null) return;
-        SetCombineSlotColor(0, IsOwned(SlotAIndex));
-        SetCombineSlotColor(1, IsOwned(SlotBIndex));
+        SetCombineSlotColor(Slot0, IsOwned(SlotAIndex));
+        SetCombineSlotColor(Slot1, IsOwned(SlotBIndex));
 
-        if (currentIndex == FirstCombineWeaponIndex) ShowCombineSlot(1, false);
-        else if (currentIndex == SecondCombineWeaponIndex) ShowCombineSlot(1, true);
+        if (currentIndex == FirstCombineWeaponIndex) ShowCombineSlot(Slot1, false);
+        else if (currentIndex == SecondCombineWeaponIndex) ShowCombineSlot(Slot1, true);
     }
 
     bool IsOwned(int index) => itemsOwned != null && index >= 0 && index < itemsOwned.Length && itemsOwned[index];
@@ -190,7 +201,11 @@ public class WeaponInventory : MonoBehaviour
         if (combineItems == null || slot < 0 || slot >= combineItems.Length) return;
         var img = combineItems[slot];
         if (!img) return;
-        img.color = hasItem ? new Color(1f, 1f, 1f, OwnedAlpha) : new Color(1f, 1f, 1f, NotOwnedAlpha);
+
+        
+        img.color = hasItem
+            ? new Color(ColorOne, ColorOne, ColorOne, OwnedAlpha)
+            : new Color(ColorOne, ColorOne, ColorOne, NotOwnedAlpha);
     }
 
     void ShowCombineSlot(int slot, bool visible)
@@ -211,7 +226,9 @@ public class WeaponInventory : MonoBehaviour
         else if (currentIndex == SecondCombineWeaponIndex && !(IsOwned(SlotAIndex) && IsOwned(SlotBIndex))) return;
 
         int max = weaponManager.weapons != null ? weaponManager.weapons.Length : 0;
-        if (currentIndex == SecondCombineWeaponIndex) targetIndex = Mathf.Clamp(currentIndex + 1, 0, Mathf.Max(0, max - 1));
+
+        if (currentIndex == SecondCombineWeaponIndex)
+            targetIndex = Mathf.Clamp(currentIndex + 1, MinIndex, Mathf.Max(MinIndex, max - 1));
 
         PlayUiSfx(selectSfx);
         weaponManager.EquipFromInventory(targetIndex);

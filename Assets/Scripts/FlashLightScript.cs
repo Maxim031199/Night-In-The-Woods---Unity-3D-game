@@ -11,9 +11,7 @@ public class FlashLightScript : MonoBehaviour
 
     [Header("Battery")]
     [Range(0f, 1f)] public float batteryPower = 1f;   // 1 = full 0 = empty
-    [Tooltip("Seconds between drain ticks.")]
     public float drainTime = 2f;
-    [Tooltip("Amount removed each tick (0..1).")]
     public float drainAmountPerTick = 0.25f;
 
     bool draining;

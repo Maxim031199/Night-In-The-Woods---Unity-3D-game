@@ -8,7 +8,7 @@ public static class GameUIState
     public static bool InventoryOpen;
 }
 
-[RequireComponent(typeof(Camera))]
+
 public class LookMode : MonoBehaviour
 {
     [Header("Post-process")]
@@ -34,11 +34,11 @@ public class LookMode : MonoBehaviour
     [Range(0f, 1f)] public float sfxVolume = 1f;
     [SerializeField] float toggleCooldown = ToggleCooldown;
 
-    [Header("Night Vision Boot (first time only)")]
+    [Header("Night Vision Boot")]
     public AudioClip nvBootClip;
     public float nvBootDelaySeconds = NvBootDelaySeconds;
 
-    [Header("Inventory SFX (optional)")]
+    [Header("Inventory SFX")]
     [SerializeField] private AudioClip invOnClip;
     [SerializeField] private AudioClip invOffClip;
 
@@ -50,10 +50,10 @@ public class LookMode : MonoBehaviour
     [SerializeField] private bool hardPauseAllAudioSources = true;
     [SerializeField] private MonoBehaviour[] pauseWhileInventory;
 
-    [Header("Input (New Input System)")]
+    [Header("Input")]
     [SerializeField] private PlayerInput playerInput;
-    [SerializeField] private string gameplayActionMap = GameplayActionMap;
-    [SerializeField] private string uiActionMap = UiActionMap;
+    [SerializeField] private string gameplayActionMap = "Player";
+    [SerializeField] private string uiActionMap = "UI";
 
     private bool nightVisionOn = false;
     private bool flashLightOn = false;
@@ -67,7 +67,6 @@ public class LookMode : MonoBehaviour
     private float nextInvToggleAllowed = 0f;
 
     private bool nvBooting = false;
-    
 
     private AudioSource audioSrc;
     private Camera cam;
@@ -77,11 +76,15 @@ public class LookMode : MonoBehaviour
     private readonly List<AudioSource> pausedSources = new();
     private readonly Dictionary<AudioSource, bool> prevIgnoreListenerPause = new();
 
+
     private const float DefaultFOV = 60f;
     private const float ToggleCooldown = 0.25f;
     private const float NvBootDelaySeconds = 4f;
-    private const string GameplayActionMap = "Player";
-    private const string UiActionMap = "UI";
+
+    private const float PausedTimeScale = 0f;
+    private const float RunningTimeScale = 1f;
+    private const float Zero = 0f;
+
     [SerializeField] private GameObject pointer;
 
     void Awake()
@@ -112,7 +115,7 @@ public class LookMode : MonoBehaviour
         audioSrc = GetComponent<AudioSource>();
         if (!audioSrc) audioSrc = gameObject.AddComponent<AudioSource>();
         audioSrc.playOnAwake = false;
-        audioSrc.spatialBlend = 0f;
+        audioSrc.spatialBlend = Zero;
         audioSrc.ignoreListenerPause = true;
 
         ForceNightVision(false, playSfx: false);
@@ -132,8 +135,7 @@ public class LookMode : MonoBehaviour
                 if (nightVisionOn) ForceNightVision(false, true);
                 else
                 {
-                     StartCoroutine(NightVisionFirstBootRoutine());
-                    
+                    StartCoroutine(NightVisionFirstBootRoutine());
                 }
             }
             nextNVToggleAllowed = Time.unscaledTime + toggleCooldown;
@@ -155,21 +157,21 @@ public class LookMode : MonoBehaviour
             nextInvToggleAllowed = Time.unscaledTime + toggleCooldown;
         }
 
-        if (nightVisionOn && nvUI != null && nvUI.batteryPower <= 0f)
+        if (nightVisionOn && nvUI != null && nvUI.batteryPower <= Zero)
             ForceNightVision(false, true);
-        if (flashLightOn && flUI != null && flUI.batteryPower <= 0f)
+        if (flashLightOn && flUI != null && flUI.batteryPower <= Zero)
             ForceFlashlight(false, true);
-        if(SaveScript.inventoryOpen == true)
+
+        if (SaveScript.inventoryOpen)
         {
             Cursor.visible = true;
-            pointer.SetActive(false);
+            if (pointer) pointer.SetActive(false);
         }
         else
         {
             Cursor.visible = false;
-            pointer.SetActive(true);
+            if (pointer) pointer.SetActive(true);
         }
-
     }
 
     System.Collections.IEnumerator NightVisionFirstBootRoutine()
@@ -181,18 +183,16 @@ public class LookMode : MonoBehaviour
 
         float wait = nvBootClip ? nvBootClip.length : nvBootDelaySeconds;
         if (nvBootClip) { audioSrc.Stop(); audioSrc.PlayOneShot(nvBootClip, sfxVolume); }
-        if (wait > 0f) yield return new WaitForSecondsRealtime(wait);
+        if (wait > Zero) yield return new WaitForSecondsRealtime(wait);
 
-        if (nvUI != null && nvUI.batteryPower <= 0f)
+        if (nvUI != null && nvUI.batteryPower <= Zero)
         {
             nvBooting = false;
-            
             yield break;
         }
-         
+
         ForceNightVision(true, false);
         nvBooting = false;
-       
     }
 
     void ApplyCurrentProfile()
@@ -222,7 +222,7 @@ public class LookMode : MonoBehaviour
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
 
-            if (pauseOnInventory) Time.timeScale = 0f;
+            if (pauseOnInventory) Time.timeScale = PausedTimeScale;
             if (pauseAudioOnInventory) AudioListener.pause = true;
             if (hardPauseAllAudioSources) HardPauseAllAudio();
 
@@ -251,7 +251,7 @@ public class LookMode : MonoBehaviour
 
             if (hardPauseAllAudioSources) HardResumeAllAudio();
             if (pauseAudioOnInventory) AudioListener.pause = false;
-            if (pauseOnInventory) Time.timeScale = 1f;
+            if (pauseOnInventory) Time.timeScale = RunningTimeScale;
 
             if (pauseWhileInventory != null)
                 foreach (var mb in pauseWhileInventory) if (mb) mb.enabled = true;

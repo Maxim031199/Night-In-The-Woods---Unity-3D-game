@@ -1,7 +1,5 @@
 using UnityEngine;
 
-[RequireComponent(typeof(CharacterController))]
-[RequireComponent(typeof(AudioSource))]
 public class Footsteps : MonoBehaviour
 {
     [SerializeField] private FPController controller;
@@ -17,7 +15,7 @@ public class Footsteps : MonoBehaviour
     [SerializeField] private AudioClip[] landClips;
     [SerializeField] private float minLandVelocity = 3f;
 
-    [Header("Tuning")]
+    [Header("Tuning")] 
     [SerializeField] private float minMoveSpeed = 0.2f;
     [SerializeField] private Vector2 pitchRange = new Vector2(0.95f, 1.05f);
 
@@ -28,10 +26,11 @@ public class Footsteps : MonoBehaviour
     private float distanceAccumulator;
     private bool wasGrounded;
 
-    private const bool playOnAwakeDisabled = false;
-    private const bool loopDisabled = false;
-    private const float spatialBlend2D = 0f;
-    private const float resetDistance = 0f;
+    const bool PlayOnAwakeDisabled = false;
+    const bool LoopDisabled = false;
+    const float SpatialBlend2D = 0f;
+    const float ResetDistance = 0f;
+    const int FirstClipIndex = 0;
 
     void Awake()
     {
@@ -39,23 +38,29 @@ public class Footsteps : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         if (!controller) controller = GetComponent<FPController>();
 
-        audioSource.playOnAwake = playOnAwakeDisabled;
-        audioSource.loop = loopDisabled;
-        audioSource.spatialBlend = spatialBlend2D;
+        if (audioSource)
+        {
+            audioSource.playOnAwake = PlayOnAwakeDisabled;
+            audioSource.loop = LoopDisabled;
+            audioSource.spatialBlend = SpatialBlend2D;
+        }
 
         lastPosition = transform.position;
+
+        if (!characterController) Debug.LogError("Footsteps needs a CharacterController on the same GameObject.");
+        if (!audioSource) Debug.LogError("Footsteps needs an AudioSource on the same GameObject.");
     }
 
     void Update()
     {
-        if (controller == null) return;
+        if (controller == null || characterController == null || audioSource == null) return;
 
         if (!wasGrounded && characterController.isGrounded)
         {
             if (landClips != null && landClips.Length > 0 && Mathf.Abs(characterController.velocity.y) > minLandVelocity)
                 PlayOne(landClips);
 
-            distanceAccumulator = resetDistance;
+            distanceAccumulator = ResetDistance;
             lastPosition = transform.position;
         }
         wasGrounded = characterController.isGrounded;
@@ -68,16 +73,16 @@ public class Footsteps : MonoBehaviour
 
         Vector3 currentPosition = transform.position;
         Vector3 delta = currentPosition - lastPosition;
-        delta.y = resetDistance;
+        delta.y = ResetDistance;
         lastPosition = currentPosition;
 
         Vector3 horizontalVelocity = characterController.velocity;
-        horizontalVelocity.y = resetDistance;
+        horizontalVelocity.y = ResetDistance;
         float speed = horizontalVelocity.magnitude;
 
         if (speed < minMoveSpeed)
         {
-            distanceAccumulator = resetDistance;
+            distanceAccumulator = ResetDistance;
             return;
         }
 
@@ -99,16 +104,17 @@ public class Footsteps : MonoBehaviour
 
     public void PlayJump()
     {
+        if (audioSource == null) return;
         if (jumpClips != null && jumpClips.Length > 0)
             PlayOne(jumpClips);
     }
 
     void PlayOne(AudioClip[] set)
     {
-        if (set == null || set.Length == 0) return;
+        if (audioSource == null || set == null || set.Length == 0) return;
 
-        int index = UnityEngine.Random.Range(0, set.Length);
-        float randomPitch = UnityEngine.Random.Range(pitchRange.x, pitchRange.y);
+        int index = Random.Range(FirstClipIndex, set.Length);
+        float randomPitch = Random.Range(pitchRange.x, pitchRange.y);
 
         audioSource.pitch = randomPitch;
         audioSource.PlayOneShot(set[index]);

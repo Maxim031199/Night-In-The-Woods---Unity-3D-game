@@ -13,25 +13,30 @@ public class WinScreen : MonoBehaviour
     [SerializeField] int totalPagesOverride = 0;
 
     [Header("Refs")]
-    [SerializeField] GameLogic gameLogic;   // assign in Inspector if possible
+    [SerializeField] GameLogic gameLogic;
 
     bool shown;
     int totalPages;
 
-    // Helper: find a GameLogic in the active scene (including inactive)
+
+    private const float TimeScalePaused = 0f;
+    private const float TimeScaleRunning = 1f;
+    private const bool IncludeInactive = true;
+
+
     static GameLogic FindGameLogicInScene()
     {
         var scene = SceneManager.GetActiveScene();
         var roots = scene.GetRootGameObjects();
         for (int i = 0; i < roots.Length; i++)
         {
-            var gl = roots[i].GetComponentInChildren<GameLogic>(true);
+            var gl = roots[i].GetComponentInChildren<GameLogic>(IncludeInactive);
             if (gl) return gl;
         }
         return null;
     }
 
-    // In editor, auto-wire if missing when values change
+
     void OnValidate()
     {
         if (!gameLogic)
@@ -63,10 +68,12 @@ public class WinScreen : MonoBehaviour
 
     void ShowWin()
     {
+        
         if (shown) return;
         shown = true;
+        GameUIState.InventoryOpen = true;  //same flag to force cursor 
 
-        Time.timeScale = 0f;
+        Time.timeScale = TimeScalePaused;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
@@ -76,7 +83,9 @@ public class WinScreen : MonoBehaviour
 
     public void ExitToMenu()
     {
-        Time.timeScale = 1f;
+        Time.timeScale = TimeScaleRunning;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
         SceneManager.LoadScene(menuSceneName);
     }
 }

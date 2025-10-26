@@ -1,58 +1,91 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
 public class ZombieScript : MonoBehaviour
 {
-    public enum ZombieType
-    {
-        shuffle,
-        dizzy,
-        alert
-    }
-    public enum ZombieState
-    {
-        Idle,
-        Walking,
-        Eating
-    }
+    public enum ZombieType { shuffle, dizzy, alert }
+    public enum ZombieState { Idle, Walking, Eating }
 
+    [Header("Data (optional)")]
     [SerializeField] private ZombieData data;
 
+    [Header("Style & State")]
     public ZombieType zombieStyle;
     public ZombieState chooseState;
-    public float yAdjustment = 0.0f;
+    [SerializeField] private float yAdjustment = 0.0f;
+
+    [Header("Targets & Player Lookup")]
+    [SerializeField] private string targetTag = "Target";
+    [SerializeField] private string playerObjectName = "Player";
+    [SerializeField] private string chaseMusicObjectName = "ChaseMusic";
+
+    [Header("Animator Mapping")]
+    
+    [SerializeField] private int animatorLayerOffset = 1;
+
+    [Header("Combat & Awareness (fallbacks used if Data is null)")]
+    [SerializeField] private float fallbackAttackDistance = 2.0f;
+    [SerializeField] private float fallbackRotateSpeed = 2.5f;
+    [SerializeField] private float alertRangeMin = 5.1f;
+    [SerializeField] private float alertRangeMax = 35f;
+
+    [Header("Movement (fallbacks used if Data is null)")]
+    
+    [SerializeField] private float[] fallbackWalkSpeeds = { 0.15f, 1.0f, 0.75f };
+
+    [Header("Random State Switching")]
+    public bool randomState = false;
+    [SerializeField] private float randomTiming = 5f;
+
+    [Header("Waypoints")]
+    [SerializeField] private float waypointSwitchDistance = 1.5f;
+
+    [Header("Chase Music")]
+    [SerializeField] private float chaseMusicTargetVolume = 0.4f;
+    [SerializeField] private float chaseMusicFadePerSecond = 0.5f;
+
+    [Header("Cleanup")]
+    [SerializeField] private float destroyDelaySeconds = 20f;
+
+    
+    private static class AnimParams
+    {
+        public const string IsDead = "isDead";
+        public const string Attacking = "attacking";
+    }
+
     private Animator anim;
     private AnimatorStateInfo animInfo;
     private NavMeshAgent agent;
-    public bool randomState = false;
-    public float randomTiming = 5f;
-    private int newState = 0;
     private int currentState;
     private GameObject[] targets;
-    private float[] walkSpeed = { 0.15f, 1.0f, 0.75f };
-    private float distanceToTarget;
     private int currentTarget = 0;
+
+    
+    private float distanceToTarget;
     private float distanceToPlayer;
     private GameObject player;
-    private float zombieAlertRange = 20f;
+    private float zombieAlertRange;
     private bool awareOfPlayer = false;
     private bool adding = true;
     private AudioSource chaseMusicPlayer;
-    private float attackDistance = 2.0f;
-    private float rotateSpeed = 2.5f;
+    private float attackDistance;
+    private float rotateSpeed;
     private AudioSource zombieSound;
 
-    // Start is called before the first frame update
     void Start()
     {
         anim = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
         zombieSound = GetComponent<AudioSource>();
-        targets = GameObject.FindGameObjectsWithTag("Target");
-        player = GameObject.Find("Player");
-        chaseMusicPlayer = GameObject.Find("ChaseMusic").GetComponent<AudioSource>();
+
+        targets = GameObject.FindGameObjectsWithTag(targetTag);
+        var playerGO = GameObject.Find(playerObjectName);
+        if (playerGO != null) player = playerGO;
+
+        var chaseMusicGO = GameObject.Find(chaseMusicObjectName);
+        if (chaseMusicGO != null) chaseMusicPlayer = chaseMusicGO.GetComponent<AudioSource>();
+
         if (data != null)
         {
             if (!string.IsNullOrEmpty(data.layerName))
@@ -63,7 +96,6 @@ public class ZombieScript : MonoBehaviour
                 else if (n == "alert") zombieStyle = ZombieType.alert;
             }
 
-            // Use animator layer by its NAME
             if (!string.IsNullOrEmpty(data.layerName) && anim)
             {
                 int active = anim.GetLayerIndex(data.layerName);
@@ -74,34 +106,33 @@ public class ZombieScript : MonoBehaviour
                 }
                 else
                 {
-                    // fallback to old behavior if name not found
-                    anim.SetLayerWeight(((int)zombieStyle + 1), 1);
+                    anim.SetLayerWeight(animatorLayerOffset + (int)zombieStyle, 1f);
                 }
             }
             else
             {
-                // old behavior
-                anim.SetLayerWeight(((int)zombieStyle + 1), 1);
+                anim.SetLayerWeight(animatorLayerOffset + (int)zombieStyle, 1f);
             }
 
-            // Pull tunables from SO
             rotateSpeed = data.rotateSpeed;
             attackDistance = data.attackDistance;
             zombieAlertRange = Random.Range(data.alertRangeMin, data.alertRangeMax);
             randomState = data.randomState;
             randomTiming = data.randomTiming;
 
-            // Movement speed
             agent.speed = data.walkSpeed;
         }
         else
         {
-            // Original defaults 
-            zombieAlertRange = Random.Range(5.1f, 35f);
-            anim.SetLayerWeight(((int)zombieStyle + 1), 1);
-            agent.speed = walkSpeed[(int)zombieStyle];
-        }
+            rotateSpeed = fallbackRotateSpeed;
+            attackDistance = fallbackAttackDistance;
+            zombieAlertRange = Random.Range(alertRangeMin, alertRangeMax);
+            anim.SetLayerWeight(animatorLayerOffset + (int)zombieStyle, 1f);
 
+            int styleIndex = (int)zombieStyle;
+            if (fallbackWalkSpeeds != null && styleIndex >= 0 && styleIndex < fallbackWalkSpeeds.Length)
+                agent.speed = fallbackWalkSpeeds[styleIndex];
+        }
 
         if (zombieStyle == ZombieType.shuffle)
             transform.position = new Vector3(transform.position.x, transform.position.y + yAdjustment, transform.position.z);
@@ -110,66 +141,68 @@ public class ZombieScript : MonoBehaviour
         currentState = (int)chooseState;
 
         if (randomState)
-            InvokeRepeating("SetAnimState", randomTiming, randomTiming);
+            InvokeRepeating(nameof(SetAnimState), randomTiming, randomTiming);
 
         if (targets != null && targets.Length > 0)
-            agent.destination = targets[0].transform.position; ;
+            agent.destination = targets[0].transform.position;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (anim.GetBool("isDead") == false)
+        if (!anim.GetBool(AnimParams.IsDead))
         {
+            if (!player) return;
+
             distanceToPlayer = Vector3.Distance(transform.position, player.transform.position);
 
             if (distanceToPlayer <= attackDistance)
             {
                 agent.isStopped = true;
-                anim.SetBool("attacking", true);
+                anim.SetBool(AnimParams.Attacking, true);
 
-                Vector3 pos = (player.transform.position - transform.position).normalized;
-
-                Quaternion posRotation = Quaternion.LookRotation(new Vector3(pos.x, 0, pos.z));
-
-                transform.rotation = Quaternion.Slerp(transform.rotation, posRotation, rotateSpeed * Time.deltaTime);
+                Vector3 dirToPlayer = (player.transform.position - transform.position).normalized;
+                Quaternion lookRot = Quaternion.LookRotation(new Vector3(dirToPlayer.x, 0, dirToPlayer.z));
+                transform.rotation = Quaternion.Slerp(transform.rotation, lookRot, rotateSpeed * Time.deltaTime);
             }
             else
             {
-                anim.SetBool("attacking", false);
+                anim.SetBool(AnimParams.Attacking, false);
 
-                if (SaveScript.zombiesChasing.Count > 0)
+                if (SaveScript.zombiesChasing.Count > 0 && chaseMusicPlayer)
                 {
-                    if (chaseMusicPlayer.volume < 0.4f)
+                    if (chaseMusicPlayer.volume < chaseMusicTargetVolume)
                     {
-                        if (chaseMusicPlayer.isPlaying == false)
-                        {
-                            chaseMusicPlayer.Play();
-                        }
-                        chaseMusicPlayer.volume += 0.5f * Time.deltaTime;
+                        if (!chaseMusicPlayer.isPlaying) chaseMusicPlayer.Play();
+                        chaseMusicPlayer.volume += chaseMusicFadePerSecond * Time.deltaTime;
+                        chaseMusicPlayer.volume = Mathf.Min(chaseMusicPlayer.volume, chaseMusicTargetVolume);
                     }
                 }
-                if (SaveScript.zombiesChasing.Count == 0)
+
+                if (SaveScript.zombiesChasing.Count == 0 && chaseMusicPlayer)
                 {
                     if (chaseMusicPlayer.volume > 0.0f)
                     {
-                        chaseMusicPlayer.volume -= 0.5f * Time.deltaTime;
+                        chaseMusicPlayer.volume -= chaseMusicFadePerSecond * Time.deltaTime;
+                        chaseMusicPlayer.volume = Mathf.Max(chaseMusicPlayer.volume, 0f);
                     }
-                    if (chaseMusicPlayer.volume == 0.0f)
-                    {
+                    if (Mathf.Approximately(chaseMusicPlayer.volume, 0f))
                         chaseMusicPlayer.Stop();
-                    }
                 }
 
-                distanceToTarget = Vector3.Distance(transform.position, targets[currentTarget].transform.position);
+                if (targets != null && targets.Length > 0)
+                {
+                    distanceToTarget = Vector3.Distance(transform.position, targets[currentTarget].transform.position);
+                }
 
-                animInfo = anim.GetCurrentAnimatorStateInfo((int)zombieStyle);
+                int layerIndex = animatorLayerOffset + (int)zombieStyle;
+                animInfo = anim.GetCurrentAnimatorStateInfo(Mathf.Clamp(layerIndex, 0, anim.layerCount - 1));
 
                 if (distanceToPlayer < zombieAlertRange && chooseState == ZombieState.Walking)
                 {
                     agent.destination = player.transform.position;
                     awareOfPlayer = true;
-                    if (adding == true)
+
+                    if (adding)
                     {
                         if (SaveScript.zombiesChasing.Contains(this.gameObject))
                         {
@@ -183,6 +216,7 @@ public class ZombieScript : MonoBehaviour
                         }
                     }
                 }
+
                 if (distanceToPlayer > zombieAlertRange)
                 {
                     awareOfPlayer = false;
@@ -195,15 +229,13 @@ public class ZombieScript : MonoBehaviour
 
                 if (animInfo.IsTag("motion"))
                 {
-                    if (anim.IsInTransition((int)zombieStyle))
-                    {
+                    if (anim.IsInTransition(Mathf.Clamp(layerIndex, 0, anim.layerCount - 1)))
                         agent.isStopped = true;
-                    }
                 }
 
-                if (chooseState == ZombieState.Walking)
+                if (chooseState == ZombieState.Walking && targets != null && targets.Length > 0)
                 {
-                    if (distanceToTarget < 1.5f)
+                    if (distanceToTarget < waypointSwitchDistance)
                     {
                         if (currentTarget < targets.Length - 1)
                         {
@@ -221,27 +253,28 @@ public class ZombieScript : MonoBehaviour
                 adding = true;
             }
 
-            if (SaveScript.zombiesChasing.Count == 0)
+            if (SaveScript.zombiesChasing.Count == 0 && chaseMusicPlayer)
             {
                 if (chaseMusicPlayer.volume > 0.0f)
                 {
-                    chaseMusicPlayer.volume -= 0.5f * Time.deltaTime;
+                    chaseMusicPlayer.volume -= chaseMusicFadePerSecond * Time.deltaTime;
+                    chaseMusicPlayer.volume = Mathf.Max(chaseMusicPlayer.volume, 0f);
                 }
-                if (chaseMusicPlayer.volume == 0.0f)
-                {
+                if (Mathf.Approximately(chaseMusicPlayer.volume, 0f))
                     chaseMusicPlayer.Stop();
-                }
             }
 
-            Destroy(gameObject, 20);
+            Destroy(gameObject, destroyDelaySeconds);
         }
     }
 
     void SetAnimState()
     {
-        if (awareOfPlayer == false)
+        if (!awareOfPlayer)
         {
-            newState = Random.Range(0, 3);
+            int statesCount = System.Enum.GetValues(typeof(ZombieState)).Length;
+            int newState = Random.Range(0, statesCount);
+
             if (newState != currentState)
             {
                 chooseState = (ZombieState)newState;
@@ -249,17 +282,19 @@ public class ZombieScript : MonoBehaviour
                 anim.SetTrigger(chooseState.ToString());
             }
         }
-        if (awareOfPlayer == true)
+        else
         {
             chooseState = ZombieState.Walking;
         }
-        zombieSound.Play();
+
+        if (zombieSound) zombieSound.Play();
     }
 
     public void WalkOn()
     {
         agent.isStopped = false;
-        agent.destination = targets[currentTarget].transform.position;
+        if (targets != null && targets.Length > 0)
+            agent.destination = targets[currentTarget].transform.position;
     }
 
     public void WalkOff()

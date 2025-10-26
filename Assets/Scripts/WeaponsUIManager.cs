@@ -1,31 +1,43 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+
 public class WeaponsUIManager : MonoBehaviour
 {
     [SerializeField] private GameObject pistolPanel, shotgunPanel, sprayPanel;
     [SerializeField] private Text pistolTotalAmmo, pistolCurrentAmmo, shotgunTotalAmmo, shotgunCurrentAmmo;
+
+
+    private const int PistolIndex = 4;
+    private const int ShotgunIndex = 5;
+    private const int SprayIndex = 6;
+
+    private const int PistolAmmoType = 0;
+    private const int ShotgunAmmoType = 1;
+
     private bool panelOn = false;
+
     void OnEnable()
     {
         GameEvents.WeaponChanged += OnWeaponChanged;
-        OnWeaponChanged(SaveScript.weaponID); 
+        OnWeaponChanged(SaveScript.weaponID);
     }
+
     void OnDisable()
     {
         GameEvents.WeaponChanged -= OnWeaponChanged;
     }
+
     void OnWeaponChanged(int id)
     {
-        // toggle panels
-        pistolPanel?.SetActive(id == 4);
-        shotgunPanel?.SetActive(id == 5);
-        sprayPanel?.SetActive(id == 6);
+        pistolPanel?.SetActive(id == PistolIndex);
+        shotgunPanel?.SetActive(id == ShotgunIndex);
+        sprayPanel?.SetActive(id == SprayIndex);
 
-        if (pistolCurrentAmmo) pistolCurrentAmmo.text = SaveScript.currentAmmo[4].ToString();
-        if (shotgunCurrentAmmo) shotgunCurrentAmmo.text = SaveScript.currentAmmo[5].ToString();
-        if (pistolTotalAmmo) pistolTotalAmmo.text = SaveScript.ammoAmts[0].ToString();
-        if (shotgunTotalAmmo) shotgunTotalAmmo.text = SaveScript.ammoAmts[1].ToString();
+        if (pistolCurrentAmmo) pistolCurrentAmmo.text = SaveScript.currentAmmo[PistolIndex].ToString();
+        if (shotgunCurrentAmmo) shotgunCurrentAmmo.text = SaveScript.currentAmmo[ShotgunIndex].ToString();
+        if (pistolTotalAmmo) pistolTotalAmmo.text = SaveScript.ammoAmts[PistolAmmoType].ToString();
+        if (shotgunTotalAmmo) shotgunTotalAmmo.text = SaveScript.ammoAmts[ShotgunAmmoType].ToString();
     }
 
     void Start()
@@ -35,35 +47,34 @@ public class WeaponsUIManager : MonoBehaviour
         sprayPanel.SetActive(false);
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if(SaveScript.weaponID == 4)
+        if (SaveScript.weaponID == PistolIndex)
         {
-            if(panelOn == false)
+            if (!panelOn)
             {
                 panelOn = true;
                 pistolPanel.SetActive(true);
             }
         }
-        if (SaveScript.weaponID == 5)
+        if (SaveScript.weaponID == ShotgunIndex)
         {
-            if (panelOn == false)
+            if (!panelOn)
             {
                 panelOn = true;
                 shotgunPanel.SetActive(true);
             }
         }
 
-        if (SaveScript.weaponID == 6)
+        if (SaveScript.weaponID == SprayIndex)
         {
-            if (panelOn == false)
+            if (!panelOn)
             {
                 panelOn = true;
                 sprayPanel.SetActive(true);
             }
         }
-        if (SaveScript.inventoryOpen == true)
+        if (SaveScript.inventoryOpen)
         {
             panelOn = false;
             pistolPanel.SetActive(false);
@@ -71,13 +82,12 @@ public class WeaponsUIManager : MonoBehaviour
             sprayPanel.SetActive(false);
         }
     }
+
     private void OnGUI()
     {
-        pistolTotalAmmo.text = SaveScript.ammoAmts[0].ToString();
-        shotgunTotalAmmo.text = SaveScript.ammoAmts[1].ToString();
-        pistolCurrentAmmo.text = SaveScript.currentAmmo[4].ToString();
-        shotgunCurrentAmmo.text = SaveScript.currentAmmo[5].ToString();
-
-
+        pistolTotalAmmo.text = SaveScript.ammoAmts[PistolAmmoType].ToString();
+        shotgunTotalAmmo.text = SaveScript.ammoAmts[ShotgunAmmoType].ToString();
+        pistolCurrentAmmo.text = SaveScript.currentAmmo[PistolIndex].ToString();
+        shotgunCurrentAmmo.text = SaveScript.currentAmmo[ShotgunIndex].ToString();
     }
 }

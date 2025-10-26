@@ -27,6 +27,8 @@ public class SlenderManAI : MonoBehaviour
     CharacterController cc;
     Rigidbody rb;
     Collider col;
+    private const float DefaultFootOffset = 0.9f;
+
 
     private const float TeleportDistance = 10f;
     private const float TeleportCooldown = 5f;
@@ -37,8 +39,11 @@ public class SlenderManAI : MonoBehaviour
     private const float GroundRayHeight = 60f;
     private const float FootRadius = 0.28f;
     private const float ExtraFootClearance = 0.12f;
+
     private const float GroundSnapEpsilon = 0.0001f;
-    private const float DefaultFootOffset = 0.9f;
+    private const float Zero = 0f;
+    private const float YAxisZero = 0f;
+    private const float RayHeightToCastDistance = 2f;
 
     void Awake()
     {
@@ -63,7 +68,7 @@ public class SlenderManAI : MonoBehaviour
         if (!player) return;
 
         timer -= Time.deltaTime;
-        if (timer <= 0f) DecideTeleportAction();
+        if (timer <= Zero) DecideTeleportAction();
 
         RotateTowardsPlayer();
 
@@ -75,14 +80,14 @@ public class SlenderManAI : MonoBehaviour
 
     void DecideTeleportAction()
     {
-        if (UnityEngine.Random.value <= chaseProbability) TeleportNearPlayer();
+        if (Random.value <= chaseProbability) TeleportNearPlayer();
         else TeleportToBaseSpot();
     }
 
     void TeleportNearPlayer()
     {
-        Vector2 dir2 = UnityEngine.Random.insideUnitCircle.normalized * teleportDistance;
-        Vector3 candidate = player.position + new Vector3(dir2.x, 0f, dir2.y);
+        Vector2 dir2 = Random.insideUnitCircle.normalized * teleportDistance;
+        Vector3 candidate = player.position + new Vector3(dir2.x, YAxisZero, dir2.y);
         TeleportSafely(candidate);
         timer = teleportCooldown;
     }
@@ -123,7 +128,8 @@ public class SlenderManAI : MonoBehaviour
 
     float GetFootOffset()
     {
-        if (cc) return Mathf.Max(0f, cc.height * 0.5f + cc.center.y) * transform.lossyScale.y;
+
+        if (cc) return Mathf.Max(Zero, cc.height * 0.5f + cc.center.y) * transform.lossyScale.y;
         if (col) return col.bounds.extents.y;
         return DefaultFootOffset;
     }
@@ -131,7 +137,7 @@ public class SlenderManAI : MonoBehaviour
     Vector3 SnapToGround(Vector3 point, float rayHeight, LayerMask mask)
     {
         Vector3 from = point + Vector3.up * rayHeight;
-        float castDist = rayHeight * 2f;
+        float castDist = rayHeight * RayHeightToCastDistance;
 
         if (Physics.SphereCast(from, footRadius, Vector3.down, out RaycastHit hit, castDist, mask, QueryTriggerInteraction.Ignore))
             point.y = hit.point.y;
@@ -142,11 +148,13 @@ public class SlenderManAI : MonoBehaviour
     void RotateTowardsPlayer()
     {
         Vector3 to = player.position - transform.position;
-        to.y = 0f;
+        to.y = YAxisZero;
         if (to.sqrMagnitude > GroundSnapEpsilon)
         {
             Quaternion target = Quaternion.LookRotation(to);
             transform.rotation = Quaternion.Slerp(transform.rotation, target, rotationSpeed * Time.deltaTime);
         }
     }
+
+
 }

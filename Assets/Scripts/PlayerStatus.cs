@@ -9,7 +9,7 @@ public class PlayerStatus : MonoBehaviour
 
     [Header("Runtime (read-only)")]
     [SerializeField] int health;
-    [SerializeField] float infection; // 0..100
+    [SerializeField] float infection; 
 
     public int Health => health;
     public float Infection => infection;

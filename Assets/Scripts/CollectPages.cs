@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using TMPro;
 
@@ -13,24 +12,28 @@ public class CollectPages : MonoBehaviour
     [Header("Audio")]
     [SerializeField] private AudioSource pickupSound;
 
-
     [Header("Gameplay")]
     [SerializeField] private GameObject monster;
-    [SerializeField] private int totalPages = 8;
-    [SerializeField] private float reachRadius = 1.5f;
+    [SerializeField] private int totalPages = DefaultTotalPages;
+    [SerializeField] private float reachRadius = DefaultReachRadius;
     [SerializeField] private bool resetCounterAtStartOnThisObject = false;
 
     [Header("Slender Difficulty")]
     [SerializeField] private SlenderManAI slenderAI;
 
-
     private Transform player;
     private bool inReach;
     public static int PagesCollected;
 
+    private GameInputActions input;
+    private bool pickupQueued;
 
-    private GameInputActions input;   
-    private bool pickupQueued;        // set by the input callback
+    private const int DefaultTotalPages = 8;
+    private const float DefaultReachRadius = 1.5f;
+    private const int MinPages = 0;
+    private const string DifficultyKey = "difficulty";
+    private const int DefaultDifficulty = 0;
+    private const float MinCooldown = 0.25f;
 
     void Awake()
     {
@@ -41,17 +44,17 @@ public class CollectPages : MonoBehaviour
 
         if (resetCounterAtStartOnThisObject)
         {
-            PagesCollected = 0;
+            PagesCollected = MinPages;
             UpdateCounterUI();
         }
 
-        input = new GameInputActions();          // create actions 
+        input = new GameInputActions(); // create actions
     }
 
     void OnEnable()
     {
         input.Player.Enable();
-        input.Player.pickup.performed += OnPickupPerformed;   // E key 
+        input.Player.pickup.performed += OnPickupPerformed; // E key
     }
 
     void OnDisable()
@@ -80,14 +83,14 @@ public class CollectPages : MonoBehaviour
         // consume queued input when valid
         if (pickupQueued)
         {
-            pickupQueued = false; // consume once
+            pickupQueued = false;
             if (inReach && !GameUIState.InventoryOpen) Collect();
         }
     }
 
     private void Collect()
     {
-        PagesCollected = Mathf.Clamp(PagesCollected + 1, 0, totalPages);
+        PagesCollected = Mathf.Clamp(PagesCollected + 1, MinPages, totalPages);
         UpdateCounterUI();
 
         ApplyDifficultyScaler();
@@ -95,8 +98,8 @@ public class CollectPages : MonoBehaviour
         if (monster && !monster.activeSelf) monster.SetActive(true);
         if (pickupSound) pickupSound.Play();
 
-        int idx = PagesCollected - 1;
 
+        int idx = PagesCollected - 1;
 
         if (promptUI) promptUI.SetActive(false);
         gameObject.SetActive(false);
@@ -113,7 +116,7 @@ public class CollectPages : MonoBehaviour
     {
         if (!slenderAI) return;
 
-        int diff = PlayerPrefs.GetInt("difficulty", 0); // 0 VH, 1 H, 2 M, 3 E
+        int diff = PlayerPrefs.GetInt(DifficultyKey, DefaultDifficulty);
         float dTeleportDist, dTeleCool, dReturnCool, dProb, dRot, dStaticRange;
 
         switch (diff)
@@ -125,11 +128,10 @@ public class CollectPages : MonoBehaviour
         }
 
         slenderAI.teleportDistance += dTeleportDist;
-        slenderAI.teleportCooldown = Mathf.Max(0.25f, slenderAI.teleportCooldown + dTeleCool);
-        slenderAI.returnCooldown = Mathf.Max(0.25f, slenderAI.returnCooldown + dReturnCool);
+        slenderAI.teleportCooldown = Mathf.Max(MinCooldown, slenderAI.teleportCooldown + dTeleCool);
+        slenderAI.returnCooldown = Mathf.Max(MinCooldown, slenderAI.returnCooldown + dReturnCool);
         slenderAI.chaseProbability = Mathf.Clamp01(slenderAI.chaseProbability + dProb);
         slenderAI.rotationSpeed += dRot;
         slenderAI.staticActivationRange += dStaticRange;
     }
-
 }

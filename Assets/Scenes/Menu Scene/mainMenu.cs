@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.InputSystem;   // <-- New Input System
+using UnityEngine.InputSystem;   
 using UnityEngine.SceneManagement;
 
 public class mainMenu : MonoBehaviour
@@ -27,7 +27,6 @@ public class mainMenu : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-
     }
 
     void OnEnable()
@@ -53,7 +52,7 @@ public class mainMenu : MonoBehaviour
         GoBack();
     }
 
-    // ------- Top-level buttons -------
+    
     public void OpenOptions() => ShowOnly(optionsPanel);
     public void OpenExtras() => ShowOnly(extrasPanel);
     public void OpenCredits() => ShowOnly(creditsPanel);
@@ -68,7 +67,6 @@ public class mainMenu : MonoBehaviour
 #endif
     }
 
-    // ------- Difficulty buttons -------
     public void StartVeryHard() => StartGameWithDifficulty(0);
     public void StartHard() => StartGameWithDifficulty(1);
     public void StartMedium() => StartGameWithDifficulty(2);
@@ -80,14 +78,14 @@ public class mainMenu : MonoBehaviour
         PlayerPrefs.Save();
 
         var gsm = FindFirstObjectByType<GameStateManager>();
-        gsm?.EnterStateByName("InGameState");   // name of your GameState child
+        gsm?.EnterStateByName("InGameState");   
 
 
         if (loadingPanel) loadingPanel.SetActive(true);
-        SceneManager.LoadScene(gameSceneName); // sync load
+        SceneManager.LoadScene(gameSceneName); 
     }
 
-    // ------- Helpers -------
+    
     private void ShowOnly(GameObject panelToShow)
     {
         if (menuRoot) menuRoot.SetActive(false);
