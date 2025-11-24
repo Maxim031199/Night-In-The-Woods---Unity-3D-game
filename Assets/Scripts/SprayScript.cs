@@ -12,6 +12,11 @@ public class SprayScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!RuntimeGameState.IsGameplayActive ||
+        GameUIState.InventoryOpen ||
+        GameUIState.PauseOpen)
+            return;
+
         var mouse = Mouse.current;
         if (mouse != null && mouse.leftButton.isPressed)
         {

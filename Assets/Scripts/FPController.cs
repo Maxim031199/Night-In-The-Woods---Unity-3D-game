@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
-
 public class FPController : MonoBehaviour
 {
     [Header("Input")]
@@ -40,7 +39,6 @@ public class FPController : MonoBehaviour
     private float targetHeight;
     public static float FPSstamina = 100;
     private float runSpeedAmt;
-
 
     private const float InitialGroundVelocity = -1f;
     private const float CrouchHeightClampMin = 0.9f;
@@ -88,13 +86,17 @@ public class FPController : MonoBehaviour
 
     void Update()
     {
+
+        if (!RuntimeGameState.IsGameplayActive ||
+        GameUIState.InventoryOpen ||
+        GameUIState.PauseOpen)
+            return;
+        
         float dt = Time.deltaTime;
 
         Vector2 look = lookAction ? lookAction.action.ReadValue<Vector2>() : Vector2.zero;
 
-
         transform.Rotate(Vector3.up * (look.x * lookSensitivity * dt));
-
 
         pitch = Mathf.Clamp(pitch - look.y * lookSensitivity * dt, -pitchClamp, pitchClamp);
         if (playerCamera) playerCamera.transform.localRotation = Quaternion.Euler(pitch, Zero, Zero);
@@ -107,7 +109,6 @@ public class FPController : MonoBehaviour
         Vector3 wish = (transform.right * move.x + transform.forward * move.y).normalized;
 
         float speed = (sprintAction && sprintAction.action.IsPressed()) ? sprintSpeed : walkSpeed;
-
 
         if (FPSstamina < LowStaminaThreshold)
             sprintSpeed = walkSpeed;

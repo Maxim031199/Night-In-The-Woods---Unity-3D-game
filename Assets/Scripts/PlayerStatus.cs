@@ -9,7 +9,7 @@ public class PlayerStatus : MonoBehaviour
 
     [Header("Runtime (read-only)")]
     [SerializeField] int health;
-    [SerializeField] float infection; 
+    [SerializeField] float infection;
 
     public int Health => health;
     public float Infection => infection;
@@ -23,8 +23,10 @@ public class PlayerStatus : MonoBehaviour
     {
         health = Mathf.Clamp(startHealth, 0, 100);
         infection = Mathf.Clamp(startInfection, 0f, 100f);
-    }
 
+        SaveScript.health = health;
+        SaveScript.infection = infection;
+    }
 
     void Start()
     {
@@ -32,19 +34,13 @@ public class PlayerStatus : MonoBehaviour
         if (infection >= 100f) OnInfectionMax?.Invoke();
     }
 
-
     public void Damage(int amount)
     {
         if (amount <= 0 || health <= 0) return;
         SetHealth(health - amount);
     }
 
-    public void Heal(int amount)
-    {
-        if (amount <= 0 || health <= 0) return;
-        SetHealth(health + amount);
-    }
-
+    
     public void AddInfection(float amount)
     {
         if (amount <= 0f || infection >= 100f) return;
@@ -57,13 +53,14 @@ public class PlayerStatus : MonoBehaviour
         SetInfection(infection - amount);
     }
 
-
     public void SetHealth(int value)
     {
         int clamped = Mathf.Clamp(value, 0, 100);
         if (clamped == health) return;
 
         health = clamped;
+        SaveScript.health = health;
+
         OnHealthChanged?.Invoke(health);
         if (health == 0) OnDead?.Invoke();
     }
@@ -74,10 +71,11 @@ public class PlayerStatus : MonoBehaviour
         if (Mathf.Approximately(clamped, infection)) return;
 
         infection = clamped;
+        SaveScript.infection = infection;
+
         OnInfectionChanged?.Invoke(infection);
         if (infection >= 100f) OnInfectionMax?.Invoke();
     }
-
 
     void Update()
     {

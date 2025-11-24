@@ -4,6 +4,7 @@ public class Footsteps : MonoBehaviour
 {
     [SerializeField] private FPController controller;
 
+
     [Header("Step Sounds")]
     [SerializeField] private AudioClip[] stepClips;
     [SerializeField] private float walkStepDistance = 2.1f;
@@ -15,7 +16,7 @@ public class Footsteps : MonoBehaviour
     [SerializeField] private AudioClip[] landClips;
     [SerializeField] private float minLandVelocity = 3f;
 
-    [Header("Tuning")] 
+    [Header("Tuning")]
     [SerializeField] private float minMoveSpeed = 0.2f;
     [SerializeField] private Vector2 pitchRange = new Vector2(0.95f, 1.05f);
 

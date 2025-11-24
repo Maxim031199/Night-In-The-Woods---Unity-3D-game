@@ -202,7 +202,7 @@ public class WeaponInventory : MonoBehaviour
         var img = combineItems[slot];
         if (!img) return;
 
-        
+
         img.color = hasItem
             ? new Color(ColorOne, ColorOne, ColorOne, OwnedAlpha)
             : new Color(ColorOne, ColorOne, ColorOne, NotOwnedAlpha);

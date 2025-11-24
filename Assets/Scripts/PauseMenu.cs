@@ -6,7 +6,7 @@ public class PauseMenu : MonoBehaviour
 {
     [Header("UI Roots")]
     [SerializeField] GameObject pauseCanvas;
-    [SerializeField] GameObject pauseRoot;     
+    [SerializeField] GameObject pauseRoot;
     [SerializeField] GameObject optionsPanel;
     [SerializeField] GameObject creditsPanel;
 
@@ -15,18 +15,18 @@ public class PauseMenu : MonoBehaviour
 
     [Header("Input (New Input System)")]
     [SerializeField] InputActionReference backAction;
-    [SerializeField] string backBinding = "<Keyboard>/escape";   
-    [SerializeField] string backActionName = "Back";             
+    [SerializeField] string backBinding = "<Keyboard>/escape";
+    [SerializeField] string backActionName = "Back";
 
     [Header("Timing")]
-    private const float PausedTimeScale = 0f;    
-    private const float UnpausedTimeScale = 1f;  
+    private const float PausedTimeScale = 0f;
+    private const float UnpausedTimeScale = 1f;
 
     private InputAction _back;
 
     void Awake()
     {
-        if (pauseCanvas) pauseCanvas.SetActive(false);  
+        if (pauseCanvas) pauseCanvas.SetActive(false);
         ShowOnly(pauseRoot);
     }
 
@@ -52,17 +52,23 @@ public class PauseMenu : MonoBehaviour
 
     void OnBackPerformed(InputAction.CallbackContext _)
     {
+        if (GameUIState.InventoryOpen ||
+        RuntimeGameState.Current == RuntimeState.Win ||
+        RuntimeGameState.Current == RuntimeState.GameOver)
+            return;
         TogglePause();
     }
 
-    // button hooks
     public void Resume() => SetPaused(false);
     public void OpenOptions() => ShowOnly(optionsPanel);
     public void OpenCredits() => ShowOnly(creditsPanel);
     public void Back() => ShowOnly(pauseRoot);
+
     public void QuitToMenu()
     {
         SetPaused(false);
+        RuntimeGameState.SetState(RuntimeState.None);
+        GameUIState.PauseOpen = false;
         SceneManager.LoadScene(menuSceneName);
     }
 
@@ -72,17 +78,36 @@ public class PauseMenu : MonoBehaviour
         SetPaused(wantPause);
     }
 
-    // core code part we did
     void SetPaused(bool paused)
     {
+        if (paused)
+        {
+            if (RuntimeGameState.Current != RuntimeState.Playing &&
+                RuntimeGameState.Current != RuntimeState.Paused)
+            {
+                return;
+            }
+
+            RuntimeGameState.SetState(RuntimeState.Paused);
+            GameUIState.PauseOpen = true;
+        }
+        else
+        {
+            if (RuntimeGameState.Current == RuntimeState.Paused)
+            {
+                RuntimeGameState.SetState(RuntimeState.Playing);
+            }
+            GameUIState.PauseOpen = false;
+        }
+
         Time.timeScale = paused ? PausedTimeScale : UnpausedTimeScale;
-        SaveScript.inventoryOpen = paused;
         Cursor.lockState = paused ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = paused;
 
         if (pauseCanvas) pauseCanvas.SetActive(paused);
-        if (paused) ShowOnly(pauseRoot); 
+        if (paused) ShowOnly(pauseRoot);
     }
+
 
     void ShowOnly(GameObject panelToShow)
     {

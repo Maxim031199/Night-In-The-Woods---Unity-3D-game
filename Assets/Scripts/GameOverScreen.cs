@@ -11,27 +11,24 @@ public class GameOverScreen : MonoBehaviour
 
     [Header("Refs")]
     [SerializeField] PlayerStatus playerStatus;
-    [SerializeField] WinScreen winScreen;
 
     bool shown;
 
     void Awake()
     {
-        if (gameOverCanvas) gameOverCanvas.SetActive(false);
+        if (gameOverCanvas)
+            gameOverCanvas.SetActive(false);
     }
 
     void OnEnable()
     {
         if (!playerStatus)
-        {
             playerStatus = FindFirstObjectByType<PlayerStatus>(FindObjectsInactive.Include);
-            if (!playerStatus) playerStatus = FindAnyObjectByType<PlayerStatus>(FindObjectsInactive.Include);
-        }
 
         if (playerStatus)
         {
-            playerStatus.OnDead += HandleLose;
-            playerStatus.OnInfectionMax += HandleLose;
+            playerStatus.OnDead += ShowGameOver;
+            playerStatus.OnInfectionMax += ShowGameOver;
         }
     }
 
@@ -39,50 +36,49 @@ public class GameOverScreen : MonoBehaviour
     {
         if (playerStatus)
         {
-            playerStatus.OnDead -= HandleLose;
-            playerStatus.OnInfectionMax -= HandleLose;
+            playerStatus.OnDead -= ShowGameOver;
+            playerStatus.OnInfectionMax -= ShowGameOver;
         }
     }
 
     void Update()
     {
         if (shown || playerStatus == null) return;
-        if (playerStatus.Health <= 0 || playerStatus.Infection >= 100f) HandleLose();
+        if (playerStatus.Health <= 0 || playerStatus.Infection >= 100f)
+            ShowGameOver();
     }
 
-    void HandleLose()
+    void ShowGameOver()
     {
         if (shown) return;
-
-        if (winScreen != null)
-        {
-            var field = typeof(WinScreen).GetField("shown", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-            if (field != null)
-            {
-                bool winShown = (bool)field.GetValue(winScreen);
-                if (winShown) return;
-            }
-        }
-
         shown = true;
-        GameUIState.InventoryOpen = true;           //same check to force cursor 
+
+        RuntimeGameState.SetState(RuntimeState.GameOver);
+        GameUIState.InventoryOpen = false;
+        GameUIState.PauseOpen = true;
         Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-        if (gameOverCanvas) gameOverCanvas.SetActive(true);
-        else Debug.LogWarning("[GameOverScreen] Assign GameOverCanvas.");
-    }
 
-    public void TriggerGameOver() => HandleLose();
+        if (gameOverCanvas)
+            gameOverCanvas.SetActive(true);
+    }
 
     public void Retry()
     {
+        RuntimeGameState.SetState(RuntimeState.Playing);
+        GameUIState.InventoryOpen = false;
+        GameUIState.PauseOpen = false;
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     public void ExitToMenu()
     {
+        RuntimeGameState.SetState(RuntimeState.None);
+        GameUIState.InventoryOpen = false;
+        GameUIState.PauseOpen = false;
+
         Time.timeScale = 1f;
         SceneManager.LoadScene(menuSceneName);
     }

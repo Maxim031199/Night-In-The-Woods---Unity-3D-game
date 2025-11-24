@@ -36,6 +36,7 @@ public class ZombieAttack : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        if (RuntimeGameState.Current != RuntimeState.Playing) return;
         if (!other.CompareTag(PlayerTag)) return;
         if (!canDamage) return;
 

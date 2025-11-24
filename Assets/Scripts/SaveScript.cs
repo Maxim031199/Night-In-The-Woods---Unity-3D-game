@@ -22,7 +22,7 @@ public class SaveScript : MonoBehaviour
     private const float ShotgunMaxRange = 50f;
 
     private const int AllLayersMask = ~0;
-    private const float PausedTimeScale = 0f;         
+    private const float PausedTimeScale = 0f;
     private const float Zero = 0f;
     private const float MoveSqrMagThreshold = 0.0001f;
 
@@ -141,9 +141,9 @@ public class SaveScript : MonoBehaviour
 
     void Update()
     {
-        if (Time.timeScale == PausedTimeScale || inventoryOpen)
+        
+        if (!RuntimeGameState.IsGameplayActive)
         {
-            stamina = Mathf.Min(maxStamina, stamina + regenPerSecond * Time.unscaledDeltaTime);
             FPController.FPSstamina = stamina;
             return;
         }
@@ -156,14 +156,13 @@ public class SaveScript : MonoBehaviour
             stamina += regenPerSecond * Time.deltaTime;
 
         stamina = Mathf.Clamp(stamina, Zero, maxStamina);
-        FPController.FPSstamina = stamina; 
+        FPController.FPSstamina = stamina;
 
         if (infection < InfectionLowThreshold)
             infection += 0.4f * Time.deltaTime;
         if (infection > InfectionLowThresholdEdge && infection < InfectionMaxThreshold)
             infection += 0.8f * Time.deltaTime;
 
-       
         if (weaponID == PistolIndex && currentAmmo[PistolIndex] > 0 && attackQueued)
         {
             if (Physics.SphereCast(transform.position, PistolSphereRadius, transform.forward,
@@ -178,7 +177,6 @@ public class SaveScript : MonoBehaviour
             attackQueued = false;
         }
 
-        
         if (weaponID == ShotgunIndex && currentAmmo[ShotgunIndex] > 0 && attackQueued)
         {
             shotgunHits = Physics.SphereCastAll(transform.position, ShotgunSphereRadius, transform.forward,
@@ -200,6 +198,7 @@ public class SaveScript : MonoBehaviour
             attackQueued = false;
         }
     }
+
 
     public static bool inventoryOpen
     {

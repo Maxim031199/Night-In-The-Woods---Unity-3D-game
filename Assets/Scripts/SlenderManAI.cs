@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class SlenderManAI : MonoBehaviour
 {
@@ -27,9 +29,8 @@ public class SlenderManAI : MonoBehaviour
     CharacterController cc;
     Rigidbody rb;
     Collider col;
+
     private const float DefaultFootOffset = 0.9f;
-
-
     private const float TeleportDistance = 10f;
     private const float TeleportCooldown = 5f;
     private const float ReturnCooldown = 10f;
@@ -58,30 +59,43 @@ public class SlenderManAI : MonoBehaviour
         timer = teleportCooldown;
 
         audioSource = GetComponent<AudioSource>() ?? gameObject.AddComponent<AudioSource>();
-        if (rb) { rb.isKinematic = true; rb.useGravity = false; }
 
-        if (staticObject) staticObject.SetActive(false);
+        if (rb)
+        {
+            rb.isKinematic = true;
+            rb.useGravity = false;
+        }
+
+        if (staticObject)
+            staticObject.SetActive(false);
     }
 
     void Update()
     {
+        if (RuntimeGameState.Current != RuntimeState.Playing)
+            return;
+
         if (!player) return;
 
         timer -= Time.deltaTime;
-        if (timer <= Zero) DecideTeleportAction();
+        if (timer <= Zero)
+            DecideTeleportAction();
 
         RotateTowardsPlayer();
 
         float sqr = (transform.position - player.position).sqrMagnitude;
         bool shouldStatic = sqr <= staticActivationRange * staticActivationRange;
+
         if (staticObject && staticObject.activeSelf != shouldStatic)
             staticObject.SetActive(shouldStatic);
     }
 
     void DecideTeleportAction()
     {
-        if (Random.value <= chaseProbability) TeleportNearPlayer();
-        else TeleportToBaseSpot();
+        if (Random.value <= chaseProbability)
+            TeleportNearPlayer();
+        else
+            TeleportToBaseSpot();
     }
 
     void TeleportNearPlayer()
@@ -123,12 +137,12 @@ public class SlenderManAI : MonoBehaviour
             transform.position = snapped;
         }
 
-        if (teleportSound) audioSource.PlayOneShot(teleportSound);
+        if (teleportSound)
+            audioSource.PlayOneShot(teleportSound);
     }
 
     float GetFootOffset()
     {
-
         if (cc) return Mathf.Max(Zero, cc.height * 0.5f + cc.center.y) * transform.lossyScale.y;
         if (col) return col.bounds.extents.y;
         return DefaultFootOffset;
@@ -149,12 +163,11 @@ public class SlenderManAI : MonoBehaviour
     {
         Vector3 to = player.position - transform.position;
         to.y = YAxisZero;
+
         if (to.sqrMagnitude > GroundSnapEpsilon)
         {
             Quaternion target = Quaternion.LookRotation(to);
             transform.rotation = Quaternion.Slerp(transform.rotation, target, rotationSpeed * Time.deltaTime);
         }
     }
-
-
 }

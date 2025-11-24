@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.InputSystem;   
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public class mainMenu : MonoBehaviour
@@ -15,10 +15,6 @@ public class mainMenu : MonoBehaviour
     [Header("Scene")]
     [SerializeField] private string gameSceneName = "GameScene";
 
-    [Header("Input (New Input System)")]
-
-    
-
     private InputAction _back;
 
     void Awake()
@@ -26,7 +22,6 @@ public class mainMenu : MonoBehaviour
         ShowOnly(menuRoot);
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
     }
 
     void OnEnable()
@@ -52,7 +47,6 @@ public class mainMenu : MonoBehaviour
         GoBack();
     }
 
-    
     public void OpenOptions() => ShowOnly(optionsPanel);
     public void OpenExtras() => ShowOnly(extrasPanel);
     public void OpenCredits() => ShowOnly(creditsPanel);
@@ -76,16 +70,13 @@ public class mainMenu : MonoBehaviour
     {
         PlayerPrefs.SetInt("difficulty", diffIndex);
         PlayerPrefs.Save();
-
-        var gsm = FindFirstObjectByType<GameStateManager>();
-        gsm?.EnterStateByName("InGameState");   
-
-
+        ResetRuntimeState();
         if (loadingPanel) loadingPanel.SetActive(true);
-        SceneManager.LoadScene(gameSceneName); 
+
+        
+        SceneManager.LoadScene(gameSceneName);
     }
 
-    
     private void ShowOnly(GameObject panelToShow)
     {
         if (menuRoot) menuRoot.SetActive(false);
@@ -96,5 +87,16 @@ public class mainMenu : MonoBehaviour
         if (loadingPanel) loadingPanel.SetActive(false);
 
         if (panelToShow) panelToShow.SetActive(true);
+    }
+
+    private void ResetRuntimeState()
+    {
+        SaveScript.health = 100;
+        SaveScript.infection = 0f;
+
+        FPController.FPSstamina = 100f;
+
+        if (SaveScript.zombiesChasing != null)
+            SaveScript.zombiesChasing.Clear();
     }
 }

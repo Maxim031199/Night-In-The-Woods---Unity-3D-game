@@ -62,6 +62,12 @@ public class WeaponManager : MonoBehaviour
 
     void Update()
     {
+        if (!RuntimeGameState.IsGameplayActive ||
+        GameUIState.InventoryOpen ||
+        GameUIState.PauseOpen)
+            return;
+        
+
         var kb = Keyboard.current;
         if (kb == null || GameUIState.InventoryOpen || Time.timeScale == PausedTimeScale) return;
 

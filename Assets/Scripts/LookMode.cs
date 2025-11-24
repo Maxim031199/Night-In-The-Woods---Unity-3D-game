@@ -6,8 +6,8 @@ using UnityEngine.Rendering.PostProcessing;
 public static class GameUIState
 {
     public static bool InventoryOpen;
+    public static bool PauseOpen;
 }
-
 
 public class LookMode : MonoBehaviour
 {
@@ -75,7 +75,6 @@ public class LookMode : MonoBehaviour
 
     private readonly List<AudioSource> pausedSources = new();
     private readonly Dictionary<AudioSource, bool> prevIgnoreListenerPause = new();
-
 
     private const float DefaultFOV = 60f;
     private const float ToggleCooldown = 0.25f;
@@ -153,8 +152,14 @@ public class LookMode : MonoBehaviour
 
         if (kb.iKey.wasPressedThisFrame && Time.unscaledTime >= nextInvToggleAllowed)
         {
-            ForceInventory(!inventoryOn);
-            nextInvToggleAllowed = Time.unscaledTime + toggleCooldown;
+            if (RuntimeGameState.Current == RuntimeState.GameOver ||
+                RuntimeGameState.Current == RuntimeState.Win)
+                return;
+            if (!GameUIState.PauseOpen)
+            {
+                ForceInventory(!inventoryOn);
+                nextInvToggleAllowed = Time.unscaledTime + toggleCooldown;
+            }
         }
 
         if (nightVisionOn && nvUI != null && nvUI.batteryPower <= Zero)
@@ -162,7 +167,13 @@ public class LookMode : MonoBehaviour
         if (flashLightOn && flUI != null && flUI.batteryPower <= Zero)
             ForceFlashlight(false, true);
 
-        if (SaveScript.inventoryOpen)
+        bool anyMenuOpen =
+            RuntimeGameState.Current == RuntimeState.Paused ||
+            RuntimeGameState.Current == RuntimeState.Inventory ||
+            RuntimeGameState.Current == RuntimeState.Win ||
+            RuntimeGameState.Current == RuntimeState.GameOver;
+
+        if (anyMenuOpen)
         {
             Cursor.visible = true;
             if (pointer) pointer.SetActive(false);
@@ -172,6 +183,7 @@ public class LookMode : MonoBehaviour
             Cursor.visible = false;
             if (pointer) pointer.SetActive(true);
         }
+
     }
 
     System.Collections.IEnumerator NightVisionFirstBootRoutine()
@@ -203,10 +215,13 @@ public class LookMode : MonoBehaviour
         else if (standard) volume.profile = standard;
     }
 
-    void ForceInventory(bool on)
+    public void ForceInventory(bool on)
     {
         if (on)
         {
+            RuntimeGameState.SetState(RuntimeState.Inventory);
+            GameUIState.InventoryOpen = true;
+
             prevNV = nightVisionOn;
             prevFlash = flashLightOn;
 
@@ -214,7 +229,6 @@ public class LookMode : MonoBehaviour
             if (disableFlashlightWhenInventoryOn && flashLightOn) ForceFlashlight(false, false);
 
             inventoryOn = true;
-            GameUIState.InventoryOpen = true;
 
             ApplyCurrentProfile();
 
@@ -236,8 +250,12 @@ public class LookMode : MonoBehaviour
         }
         else
         {
-            inventoryOn = false;
             GameUIState.InventoryOpen = false;
+
+            if (RuntimeGameState.Current == RuntimeState.Inventory)
+                RuntimeGameState.SetState(RuntimeState.Playing);
+
+            inventoryOn = false;
 
             if (disableNVWhenInventoryOn && prevNV) ForceNightVision(true, false);
             if (disableFlashlightWhenInventoryOn && prevFlash) ForceFlashlight(true, false);
@@ -262,6 +280,17 @@ public class LookMode : MonoBehaviour
             if (invOffClip) { audioSrc.Stop(); audioSrc.PlayOneShot(invOffClip, sfxVolume); }
         }
     }
+
+    public void CloseInventoryFromPause()
+    {
+        if (!inventoryOn)
+            return;
+
+
+        ForceInventory(false);
+    }
+
+
 
     void HardPauseAllAudio()
     {

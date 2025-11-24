@@ -1,17 +1,12 @@
-using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class StartScreenUIManager : MonoBehaviour
-
-
 {
+    [SerializeField] private GameObject mainMenuRoot;
+    [SerializeField] private GameObject difficultyPanel;
 
-    [SerializeField] private GameObject mainMenuRoot;   
-    [SerializeField] private GameObject difficultyPanel; 
-    
     [Header("Buttons")]
     [SerializeField] Button startButton;
     [SerializeField] Button optionsButton;
@@ -42,11 +37,9 @@ public class StartScreenUIManager : MonoBehaviour
 
     void Start()
     {
-
         EventSystem.current.SetSelectedGameObject(startButton.gameObject);
         AddButtonsListeners();
         ToggleCreditsScreen(false);
-        AssignNamedActionTransition();
     }
 
     private void AddButtonsListeners()
@@ -69,26 +62,13 @@ public class StartScreenUIManager : MonoBehaviour
         if (mainMenuRoot) mainMenuRoot.SetActive(true);
     }
 
-    private void AssignNamedActionTransition()
-    {
-        var transitions = FindObjectsByType<NamedActionTransition>(FindObjectsSortMode.None);
-        var buttons = FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None).ToList();
-        foreach (var transition in transitions)
-        {
-            var selectedButton = buttons.FirstOrDefault(x => x.name.Equals(transition.actionName));
-            if (selectedButton != null)
-            {
-                selectedButton.onClick.AddListener(transition.DoAction);
-            }
-        }
-    }
-
     private void ToggleCreditsScreen(bool showCredits)
     {
         creditsPanel.gameObject.SetActive(showCredits);
         buttonsPanel.gameObject.SetActive(!showCredits);
 
-        EventSystem.current.SetSelectedGameObject(showCredits
-            ? backButton.gameObject : creditsButton.gameObject);
+        EventSystem.current.SetSelectedGameObject(
+            showCredits ? backButton.gameObject : creditsButton.gameObject
+        );
     }
 }

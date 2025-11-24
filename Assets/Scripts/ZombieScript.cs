@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -20,7 +21,6 @@ public class ZombieScript : MonoBehaviour
     [SerializeField] private string chaseMusicObjectName = "ChaseMusic";
 
     [Header("Animator Mapping")]
-    
     [SerializeField] private int animatorLayerOffset = 1;
 
     [Header("Combat & Awareness (fallbacks used if Data is null)")]
@@ -30,7 +30,6 @@ public class ZombieScript : MonoBehaviour
     [SerializeField] private float alertRangeMax = 35f;
 
     [Header("Movement (fallbacks used if Data is null)")]
-    
     [SerializeField] private float[] fallbackWalkSpeeds = { 0.15f, 1.0f, 0.75f };
 
     [Header("Random State Switching")]
@@ -47,7 +46,6 @@ public class ZombieScript : MonoBehaviour
     [Header("Cleanup")]
     [SerializeField] private float destroyDelaySeconds = 20f;
 
-    
     private static class AnimParams
     {
         public const string IsDead = "isDead";
@@ -61,7 +59,6 @@ public class ZombieScript : MonoBehaviour
     private GameObject[] targets;
     private int currentTarget = 0;
 
-    
     private float distanceToTarget;
     private float distanceToPlayer;
     private GameObject player;
@@ -116,7 +113,7 @@ public class ZombieScript : MonoBehaviour
 
             rotateSpeed = data.rotateSpeed;
             attackDistance = data.attackDistance;
-            zombieAlertRange = Random.Range(data.alertRangeMin, data.alertRangeMax);
+            zombieAlertRange = UnityEngine.Random.Range(data.alertRangeMin, data.alertRangeMax);
             randomState = data.randomState;
             randomTiming = data.randomTiming;
 
@@ -126,7 +123,7 @@ public class ZombieScript : MonoBehaviour
         {
             rotateSpeed = fallbackRotateSpeed;
             attackDistance = fallbackAttackDistance;
-            zombieAlertRange = Random.Range(alertRangeMin, alertRangeMax);
+            zombieAlertRange = UnityEngine.Random.Range(alertRangeMin, alertRangeMax);
             anim.SetLayerWeight(animatorLayerOffset + (int)zombieStyle, 1f);
 
             int styleIndex = (int)zombieStyle;
@@ -149,6 +146,13 @@ public class ZombieScript : MonoBehaviour
 
     void Update()
     {
+        if (RuntimeGameState.Current != RuntimeState.Playing)
+        {
+            if (agent && !agent.isStopped)
+                agent.isStopped = true;
+            return;
+        }
+
         if (!anim.GetBool(AnimParams.IsDead))
         {
             if (!player) return;
@@ -239,7 +243,7 @@ public class ZombieScript : MonoBehaviour
                     {
                         if (currentTarget < targets.Length - 1)
                         {
-                            currentTarget = Random.Range(0, targets.Length);
+                            currentTarget = UnityEngine.Random.Range(0, targets.Length);
                         }
                     }
                 }
@@ -272,8 +276,8 @@ public class ZombieScript : MonoBehaviour
     {
         if (!awareOfPlayer)
         {
-            int statesCount = System.Enum.GetValues(typeof(ZombieState)).Length;
-            int newState = Random.Range(0, statesCount);
+            int statesCount = Enum.GetValues(typeof(ZombieState)).Length;
+            int newState = UnityEngine.Random.Range(0, statesCount);
 
             if (newState != currentState)
             {

@@ -10,7 +10,7 @@ public class NightVisionScript : MonoBehaviour
     [SerializeField] private Image batteryChunks;
 
     [Header("Input (New System)")]
-    [SerializeField] private InputActionReference zoomAction; 
+    [SerializeField] private InputActionReference zoomAction;
 
     [Header("Zoom")]
     [SerializeField] private float minFOV = MinFOV;
